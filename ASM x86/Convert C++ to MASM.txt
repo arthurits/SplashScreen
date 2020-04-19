@@ -1,0 +1,73 @@
+¿Entonces la solución para no cumplir los requerimientos es “no estar presente” (por ejemplo en los portátiles)?
+
+Parece que estamos validando que el usuario tenga que estar de pie durante 8 horas.
+
+bool CSplashScreen::FadeWindowOut(HWND hWnd) {
+00007FF7159D3D60  mov         qword ptr [rsp+10h],rdx  
+00007FF7159D3D65  mov         qword ptr [rsp+8],rcx  
+00007FF7159D3D6A  push        rdi  
+00007FF7159D3D6B  sub         rsp,60h  
+00007FF7159D3D6F  mov         rdi,rsp  
+00007FF7159D3D72  mov         ecx,18h  
+00007FF7159D3D77  mov         eax,0CCCCCCCCh  
+00007FF7159D3D7C  rep stos    dword ptr [rdi]  
+00007FF7159D3D7E  mov         rcx,qword ptr [this]  
+	DWORD dtNow = GetTickCount64();
+00007FF7159D3D83  call        qword ptr [__imp_GetTickCount64 (07FF7159F20C0h)]  
+00007FF7159D3D89  mov         dword ptr [dtNow],eax  
+	if (dtNow >= m_nFadeoutEnd) 
+00007FF7159D3D8D  mov         rax,qword ptr [this]  
+00007FF7159D3D92  mov         eax,dword ptr [rax+0Ch]  
+00007FF7159D3D95  cmp         dword ptr [dtNow],eax  
+00007FF7159D3D99  jb          CSplashScreen::FadeWindowOut+47h (07FF7159D3DA7h)  
+	{
+		return true;
+00007FF7159D3D9B  mov         al,1  
+00007FF7159D3D9D  jmp         CSplashScreen::FadeWindowOut+0D7h (07FF7159D3E37h)  
+	} 
+00007FF7159D3DA2  jmp         CSplashScreen::FadeWindowOut+0D7h (07FF7159D3E37h)  
+	else
+	{ 
+		double fade = ((double)m_nFadeoutEnd - (double)dtNow) / (double)m_nFadeoutTime;
+00007FF7159D3DA7  mov         rax,qword ptr [this]  
+00007FF7159D3DAC  mov         eax,dword ptr [rax+0Ch]  
+00007FF7159D3DAF  cvtsi2sd    xmm0,rax  
+00007FF7159D3DB4  mov         eax,dword ptr [dtNow]  
+00007FF7159D3DB8  cvtsi2sd    xmm1,rax  
+00007FF7159D3DBD  subsd       xmm0,xmm1  
+	else
+	{ 
+		double fade = ((double)m_nFadeoutEnd - (double)dtNow) / (double)m_nFadeoutTime;
+00007FF7159D3DC1  mov         rax,qword ptr [this]  
+00007FF7159D3DC6  mov         eax,dword ptr [rax+10h]  
+00007FF7159D3DC9  cvtsi2sd    xmm1,rax  
+00007FF7159D3DCE  divsd       xmm0,xmm1  
+00007FF7159D3DD2  movsd       mmword ptr [rsp+58h],xmm0  
+		m_blend.SourceConstantAlpha = (byte)(255 * fade);
+00007FF7159D3DD8  movsd       xmm0,mmword ptr [__real@406fe00000000000 (07FF7159E91F0h)]  
+00007FF7159D3DE0  mulsd       xmm0,mmword ptr [rsp+58h]  
+00007FF7159D3DE6  cvttsd2si   eax,xmm0  
+00007FF7159D3DEA  mov         rcx,qword ptr [this]  
+00007FF7159D3DEF  mov         byte ptr [rcx+0Ah],al  
+		
+		UpdateLayeredWindow(hWnd, NULL, NULL, NULL,NULL, NULL, RGB(0, 0, 0), &m_blend, ULW_ALPHA);
+00007FF7159D3DF2  mov         rax,qword ptr [this]  
+00007FF7159D3DF7  add         rax,8  
+00007FF7159D3DFB  mov         dword ptr [rsp+40h],2  
+00007FF7159D3E03  mov         qword ptr [rsp+38h],rax  
+00007FF7159D3E08  mov         dword ptr [rsp+30h],0  
+00007FF7159D3E10  mov         qword ptr [rsp+28h],0  
+00007FF7159D3E19  mov         qword ptr [rsp+20h],0  
+00007FF7159D3E22  xor         r9d,r9d  
+00007FF7159D3E25  xor         r8d,r8d  
+00007FF7159D3E28  xor         edx,edx  
+00007FF7159D3E2A  mov         rcx,qword ptr [hWnd]  
+00007FF7159D3E2F  call        qword ptr [__imp_UpdateLayeredWindow (07FF7159F24F8h)]  
+		return false;
+00007FF7159D3E35  xor         al,al  
+	} 
+	
+}
+00007FF7159D3E37  add         rsp,60h  
+00007FF7159D3E3B  pop         rdi  
+00007FF7159D3E3C  ret  
