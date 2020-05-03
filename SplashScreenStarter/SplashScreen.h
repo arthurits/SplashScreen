@@ -30,7 +30,7 @@ class CSplashScreen
 		void UnregisterWindowClass();
 		HBITMAP CreateBitmapImage();
 		HWND CreateSplashWindow();
-		HANDLE LaunchWpfApplication();
+		HANDLE LaunchApplication();
 		bool FadeWindowOut(HWND hwnd, HDC hdcScreen);
 		bool FileExists(LPCTSTR szPath);
 		inline DWORD PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCount, LPHANDLE pHandles, DWORD dwMilliseconds);

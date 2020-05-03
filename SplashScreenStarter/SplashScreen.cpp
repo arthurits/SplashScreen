@@ -192,7 +192,7 @@ void CSplashScreen::UnregisterWindowClass() {
 	UnregisterClass(m_strSplashClass.c_str(), m_hInstance);
 }
 
-HANDLE CSplashScreen::LaunchWpfApplication()
+HANDLE CSplashScreen::LaunchApplication()
 {
 	// get folder of the current process
 	TCHAR szCurrentFolder[MAX_PATH] = { 0 };
@@ -212,11 +212,20 @@ HANDLE CSplashScreen::LaunchWpfApplication()
 
 	// start the application
 	STARTUPINFO si = { 0 };
+	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
 	PROCESS_INFORMATION pi = { 0 };
-	CreateProcess(szApplicationPath, GetCommandLine(), NULL, NULL, FALSE, 0, NULL, szCurrentFolder, &si, &pi);
+	ZeroMemory(&pi, sizeof(pi));
 
-	return pi.hProcess;
+	CreateProcess(szApplicationPath, GetCommandLine(), NULL, NULL, FALSE, CREATE_UNICODE_ENVIRONMENT, NULL, szCurrentFolder, &si, &pi);
+	//CreateProcess(szApplicationPath, GetCommandLine(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+
+	// Normally we should close both process and thread handles in order to avoid memory leaks: CloseHandle(pi.hProcess) CloseHandle(pi.hThread)
+	// but here the variable pi goes out of scope
+	//CloseHandle(pi.hProcess);
+	//CloseHandle(pi.hThread);
+
+	return pi.hProcess; 
 }
 
 bool CSplashScreen::FadeWindowOut(HWND hWnd, HDC hdcScreen) {
@@ -348,7 +357,7 @@ void CSplashScreen::Show() {
 	}
 
 	// Launch the application
-	HANDLE hProcess = LaunchWpfApplication();
+	HANDLE hProcess = LaunchApplication();
 	AllowSetForegroundWindow(GetProcessId(hProcess));
 		
 	// Display the splash screen for as long as it's needed
