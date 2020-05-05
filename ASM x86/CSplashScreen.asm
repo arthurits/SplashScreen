@@ -214,6 +214,9 @@ CSplashScreen_Show PROC uses edi lpTHIS:DWORD
 	; Deallocate the hbitmap
 	invoke DeleteObject, hBitmap
 
+	invoke CloseHandle, aHandles
+	;invoke CloseHandle, hProcess
+
 	; Close the events
 	invoke CloseHandle, hCloseSplashEvent
 	invoke CloseHandle, hCloseSplashWithoutFadeEvent
@@ -510,7 +513,10 @@ CSplashScreen_LaunchApplication PROC uses edi lpTHIS:DWORD
 	;mov ebx, eax
 	;invoke CreateProcess, ADDR szApplicationPath, ebx, NULL, NULL, FALSE, 0, NULL, ADDR szCurrentFolder, ADDR startupinfo, ADDR processinfo
 
-	; Return the handle of the launched application
+	; Release in order to avoid memory leaks
+	invoke CloseHandle, processinfo.hThread
+
+	; Return the handle of the launched application. The caller should release this using CloseHandle
 	mov eax, processinfo.hProcess
 	
 	assume edi:nothing

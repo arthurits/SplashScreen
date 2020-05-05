@@ -223,7 +223,7 @@ HANDLE CSplashScreen::LaunchApplication()
 	// Normally we should close both process and thread handles in order to avoid memory leaks: CloseHandle(pi.hProcess) CloseHandle(pi.hThread)
 	// but here the variable pi goes out of scope
 	//CloseHandle(pi.hProcess);
-	//CloseHandle(pi.hThread);
+	CloseHandle(pi.hThread);
 
 	return pi.hProcess; 
 }
@@ -368,6 +368,8 @@ void CSplashScreen::Show() {
 
 	// Deallocate the hbitmap
 	DeleteObject(hb);
+
+	CloseHandle(hProcess);
 
 	// Close the events
 	CloseHandle(hCloseSplashEvent);
