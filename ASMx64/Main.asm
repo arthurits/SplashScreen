@@ -24,6 +24,8 @@ MsgBoxText db "Win64 Assembly is great!",0
 
 .code
 main proc
+	sub rsp, 8	; align stack to 16 bits boundary
+	
 
 	; Get the current handle
 	mov rcx, NULL
