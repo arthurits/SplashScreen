@@ -4,6 +4,11 @@ TRUE	equ	1
 FALSE	equ	0
 NULL	equ	0
 
+MB_ICONERROR	equ 10h
+
+INVALID_FILE_ATTRIBUTES	equ	-1 ;0FFFFFFFFh
+FILE_ATTRIBUTE_DIRECTORY	equ	10h
+
 ; ************************** win64 types ********************************
 IFDEF __UNICODE__
     TCHAR                       typedef WORD

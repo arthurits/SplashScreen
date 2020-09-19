@@ -7,5 +7,6 @@
     <MASM Include="Main.asm" />
     <MASM Include="FunctionProtos.asm" />
     <MASM Include="VariableDefinitions.asm" />
+    <MASM Include="CFile.asm" />
   </ItemGroup>
 </Project>
