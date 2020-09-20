@@ -6,6 +6,8 @@ endif
 ifndef _CFile_
 _CFile_ equ 1
 
+;rax, rcx, rdx, r8-r11 are volatile.
+;rbx, rbp, rdi, rsi, r12-r15 are nonvolatile.
 
 ;include C:\masm32\include\windows.inc
 ;include C:\masm32\include\user32.inc 
@@ -96,13 +98,10 @@ SizeReadWrite2 QWORD ?	; number of bytes actually read or write
 ; --=====================================================================================--
 ; CLASS CONSTRUCTOR
 ; --=====================================================================================--
-CFile_Init  PROC lpTHIS:QWORD
+CFile_Init  PROC uses rsi rdi lpTHIS:QWORD
 	;SET_CLASS CFile
 	;CFile_initsize equ sizeof CFile
 
-	push    rsi
-	push    rdi
-	push	rcx
 	cld 
 	
 	; asign the class methods to pointer lpTHIS
@@ -120,9 +119,9 @@ CFile_Init  PROC lpTHIS:QWORD
 	;Initialization code
 	;assume rdi:nothing
 
-	pop		rcx
-	pop		rdi
-	pop		rsi
+	;pop		rcx
+	;pop		rdi
+	;pop		rsi
 
    ret
 CFile_Init ENDP
@@ -130,9 +129,15 @@ CFile_Init ENDP
 ; --=====================================================================================--
 ; destructor METHOD BEHAVIOR
 ; --=====================================================================================--
-CFile_Destructor PROC uses rcx rdi lpTHIS:QWORD 
+CFile_Destructor PROC uses rdi lpTHIS:QWORD 
+	; Stack alignment
+	xor r10, r10
+	mov r10b, spl	; Align 10 16 bits if needed
+	and r10, 01		; Gete the lower bit: this is always either 8 or 0
+	add r10, 32		; Allow 32 bits of shallow space
+	sub rsp, r10	
+	
 	mov  rdi, lpTHIS
-	;assume rdi:PTR CFile
 
 	mov rcx, (CFile ptr[rdi]).handle
 	cmp rcx, NULL
@@ -144,14 +149,15 @@ CFile_Destructor PROC uses rcx rdi lpTHIS:QWORD
 	cmp rcx, NULL
 	je next02
 	call GlobalFree
-
 	next02:   
-	;assume rdi:nothing
-   ret
+	
+	; Restore the stack pointer to point to the return address
+	add rsp, r10
+	ret
 CFile_Destructor ENDP
 
 ;--------------------------------------------------------
-CFile_OpenFile PROC uses rax rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
+CFile_OpenFile PROC uses rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
