@@ -133,7 +133,7 @@ CFile_Destructor PROC uses rdi rbx lpTHIS:QWORD
 	; Stack alignment
 	xor r10, r10
 	mov r10b, spl	; Align to 16 bits if needed
-	and r10, 08		; Get the lower bit: this is always either 8 or 0
+	and r10, Fh		; Get the lower bit: this is always either 8 or 0
 	add r10, 32		; Allow 32 bits of shallow space
 	sub rsp, r10	
 	
@@ -165,6 +165,53 @@ CFile_OpenFile PROC uses rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
 ; Returns: EAX = sum, and the status flags (Carry, ; Overflow, etc.) are changed.
 ; Requires: nothing
 ;---------------------------------------------------------
+	xor r10, r10
+	mov r10b, spl	; Align to 16 bits if needed
+	and r10, Fh		; Get the lower bit: this is always either 8 or 0
+	add r10, 8*8		; Allow 64 bits of shallow space
+	sub rsp, r10
+
+	mov rdi, lpTHIS
+
+	mov rcx, lpszFileName
+	mov rdx, GENERIC_READ or GENERIC_WRITE
+	mov r8, FILE_SHARE_READ or FILE_SHARE_WRITE
+	mov r9, NULL
+	push NULL
+	push FILE_ATTRIBUTE_ARCHIVE
+	push OPEN_EXISTING
+	call CreateFile
+	;invoke CreateFile, lpszFileName, GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE, NULL 
+	;mov edx, eax
+	mov (CFile ptr[rdi]).handle, rax
+
+	mov rdx, ADDR fileSize2
+	mov rcx, rax
+	call GetFileSizeEx
+	;invoke GetFileSizeEx, [edi].handle, ADDR fileSize2
+	mov rax, fileSize2.LowPart
+	inc rax						; One bit for the NULL terminated
+	mov rbx, rax
+	mov (CFile ptr[rdi]).bytesRead, rbx		; Save the size in the in-memory struct
+
+	mov rdx, rax
+	mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT
+	call GlobalAlloc
+	;invoke GlobalAlloc, GMEM_MOVEABLE or GMEM_ZEROINIT, eax
+	mov DWORD PTR [ebp-4], eax
+	mov rcx, rax
+	call GlobalLock
+	mov DWORD PTR [ebp-8], eax
+	invoke ReadFile, [edi].handle, DWORD PTR [ebp-8], fileSize2.LowPart, ADDR SizeReadWrite2, NULL
+	;mov DWORD PTR [ebp-8], eax
+	mov rcx, (CFile ptr[rdi]).handle
+	call CloseHandle
+	cmp rax, 0
+	jne end_if
+		mov (CFile ptr[rdi]).handle, 0
+	end_if:
+
+
 	ret
 CFile_OpenFile ENDP
 

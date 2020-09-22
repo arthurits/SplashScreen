@@ -9,6 +9,18 @@ MB_ICONERROR	equ 10h
 INVALID_FILE_ATTRIBUTES	equ	-1 ;0FFFFFFFFh
 FILE_ATTRIBUTE_DIRECTORY	equ	10h
 
+; CreateFile constants
+GENERIC_READ		equ 80000000h
+GENERIC_WRITE		equ 40000000h
+FILE_SHARE_READ		equ 1h
+FILE_SHARE_WRITE	equ	2h
+OPEN_EXISTING		equ	3h
+FILE_ATTRIBUTE_ARCHIVE	equ	20h
+
+; GlobalAlloc constants
+GMEM_MOVEABLE		equ 2h
+GMEM_ZEROINIT		equ 40h
+
 ; ************************** win64 types ********************************
 IFDEF __UNICODE__
     TCHAR                       typedef WORD
