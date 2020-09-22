@@ -129,11 +129,11 @@ CFile_Init ENDP
 ; --=====================================================================================--
 ; destructor METHOD BEHAVIOR
 ; --=====================================================================================--
-CFile_Destructor PROC uses rdi lpTHIS:QWORD 
+CFile_Destructor PROC uses rdi rbx lpTHIS:QWORD 
 	; Stack alignment
 	xor r10, r10
-	mov r10b, spl	; Align 10 16 bits if needed
-	and r10, 01		; Gete the lower bit: this is always either 8 or 0
+	mov r10b, spl	; Align to 16 bits if needed
+	and r10, 08		; Get the lower bit: this is always either 8 or 0
 	add r10, 32		; Allow 32 bits of shallow space
 	sub rsp, r10	
 	
@@ -169,7 +169,7 @@ CFile_OpenFile PROC uses rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
 CFile_OpenFile ENDP
 
 ;--------------------------------------------------------
-CFile_Dispose PROC uses rdi lpTHIS:QWORD
+CFile_Dispose PROC uses rdi rbx lpTHIS:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
