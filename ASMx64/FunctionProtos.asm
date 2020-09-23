@@ -59,3 +59,9 @@ ReadFile equ <__imp_ReadFile>
 
 externdef __imp_CloseHandle:PPROC
 CloseHandle equ <__imp_CloseHandle>
+
+externdef __imp_GlobalUnlock:PPROC
+GlobalUnlock equ <__imp_GlobalUnlock>
+
+externdef __imp_GlobalFree:PPROC
+GlobalFree equ <__imp_GlobalFree>
