@@ -21,6 +21,9 @@ FILE_ATTRIBUTE_ARCHIVE	equ	20h
 GMEM_MOVEABLE		equ 2h
 GMEM_ZEROINIT		equ 40h
 
+; MultiByteToWideChar
+CP_UTF8				equ 65001	; UTF-8 translation
+
 ; ************************** win64 types ********************************
 IFDEF __UNICODE__
     TCHAR                       typedef WORD

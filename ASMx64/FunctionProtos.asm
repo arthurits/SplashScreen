@@ -65,3 +65,6 @@ GlobalUnlock equ <__imp_GlobalUnlock>
 
 externdef __imp_GlobalFree:PPROC
 GlobalFree equ <__imp_GlobalFree>
+
+externdef __imp_MultiByteToWideChar:PPROC
+MultiByteToWideChar equ <__imp_MultiByteToWideChar>

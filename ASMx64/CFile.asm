@@ -129,13 +129,12 @@ CFile_Init ENDP
 ; --=====================================================================================--
 ; destructor METHOD BEHAVIOR
 ; --=====================================================================================--
-CFile_Destructor PROC uses rdi rbx lpTHIS:QWORD 
+CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD 
 	; Stack alignment
-	xor r10, r10
-	mov r10b, spl	; Align to 16 bits if needed
-	and r10, 0Fh		; Get the lower bit: this is always either 8 or 0
-	add r10, 32		; Allow 32 bits of shallow space
-	sub rsp, r10	
+	sub rsp, 8 * 4	; Shallow space for Win64 calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
+	mov r15, rbp
+	sub r15, rsp	; The difference rsp-rbp will be added to rsp at the end of the procedure
 	
 	mov  rdi, lpTHIS
 
@@ -152,12 +151,12 @@ CFile_Destructor PROC uses rdi rbx lpTHIS:QWORD
 	next02:   
 	
 	; Restore the stack pointer to point to the return address
-	add rsp, r10
+	add rsp, r15
 	ret
 CFile_Destructor ENDP
 
 ;--------------------------------------------------------
-CFile_OpenFile PROC uses rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
+CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
@@ -170,8 +169,8 @@ CFile_OpenFile PROC uses rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
 
 	sub rsp, 8 * 7	; Shallow space for Win64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
-	mov rbx, rbp
-	sub ebx, esp	; The difference rsp-rbp will be added to rsp at the end of the procedure
+	mov r15, rbp
+	sub r15d, esp	; The difference rsp-rbp will be added to rsp at the end of the procedure
 
 	;xor r10, r10
 	;mov r10b, spl	; Align to 16 bits if needed
@@ -200,8 +199,8 @@ CFile_OpenFile PROC uses rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
 	;invoke GetFileSizeEx, [edi].handle, ADDR fileSize2
 	mov eax, fileSize2.LowPart
 	inc rax						; One bit for the NULL terminated
-	mov rbx, rax
-	mov (CFile ptr[rdi]).bytesRead, rbx		; Save the size in the in-memory struct
+	mov r10, rax
+	mov (CFile ptr[rdi]).bytesRead, r10		; Save the size in the in-memory struct
 
 	mov rdx, rax
 	mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT
@@ -227,12 +226,51 @@ CFile_OpenFile PROC uses rbx rdi lpTHIS:QWORD, lpszFileName:QWORD
 		mov (CFile ptr[rdi]).handle, 0
 	end_if:
 
+
+	; Convert text from byte to word (Unicode)
+	mov rdx, (CFile ptr[rdi]).bytesRead
+	shl rdx, 1		;Multiply by 2 in order to convert from char to wchar
+	mov rcx, GMEM_ZEROINIT
+	call GlobalAlloc
+	;invoke GlobalAlloc, GMEM_ZEROINIT, eax
+	;mov pMemoryW,eax
+	mov (CFile ptr[rdi]).ptrHeapText, rax
+	mov (CFile ptr[rdi]).ptrLine, rax
+
+	; Convert byte string to word string
+	mov DWORD PTR [rsp+40], NULL
+	mov rax, (CFile ptr[rdi]).ptrHeapText
+	mov QWORD PTR [rsp+32], rax
+	mov r9, -1
+	mov r8, lpGLOBAL
+	mov rdx, NULL
+	mov rcx, CP_UTF8
+	call MultiByteToWideChar	; Returns the size, in characters, of the buffer indicated by [rsp+32]
+	;invoke MultiByteToWideChar, CP_UTF8, 0, DWORD PTR [ebp-8], -1, [edi].ptrHeapText, 0
+	mov QWORD PTR [rsp+40], rax
+	;mov QWORD PTR [rsp+32], (CFile ptr[rdi]).ptrHeapText
+	mov r9, -1
+	mov r8, lpGLOBAL
+	mov rdx, NULL
+	mov rcx, CP_UTF8
+	call MultiByteToWideChar
+	;invoke MultiByteToWideChar, CP_UTF8, 0, DWORD PTR [ebp-8], -1, [edi].ptrHeapText, [edi].bytesRead
+	;invoke MultiByteToWideChar, CP_UTF8, 0, DWORD PTR [ebp-8], -1, [edi].ptrHeapText, eax
+
+	;print [edi].ptrHeapText
+	mov		r9, NULL
+	mov		r8, (CFile ptr[rdi]).ptrLine
+	mov		rdx, (CFile ptr[rdi]).ptrHeapText
+	mov		rcx, NULL
+	call	MessageBox
+
+	; Release heap memory
 	mov rcx, lpGLOBAL
 	call GlobalUnlock
 	mov rcx, hGLOBAL
 	call GlobalFree
 
-	add rsp, rbx	; Restore the stack
+	add rsp, r15	; Restore the stack
 
 	ret
 CFile_OpenFile ENDP

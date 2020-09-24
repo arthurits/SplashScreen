@@ -35,10 +35,6 @@ include CFile.asm
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
 	ErrorApp BYTE "Could not find the file in the following path:", 13, 10, 0
 
-	sum qword 0
-	MsgCaption db "Iczelion's tutorial #2a",0
-	MsgBoxText db "Win64 Assembly is great!",0
-
 	hdlModule	HMODULE	NULL
 	file		QWORD	NULL
 
@@ -87,21 +83,6 @@ main proc
 	call CFile_OpenFile
 	add rsp, 16
 
-	;and rsp, -8h
-	;enter 4*8,0
-	;xor ecx,ecx
-	;mov r9,rcx
-	;lea r8,MsgCaption
-	;lea edx,MsgBoxText
-    ;call MessageBoxA
-    ;leave
-
-	xor r9, r9
-	lea r8, MsgCaption
-	lea rdx, MsgBoxText
-	xor rcx, rcx
-	call MessageBoxA
-
 
 	exit_main_deallocate:
 		; If a CFile instance was succesffully created, first call the CFile desturctor
@@ -110,7 +91,7 @@ main proc
 		mov rax, file
 		push rax
 		call QWORD PTR [rax]
-		pop rax
+		add rsp, 8
 
 		; Then destroy instance from heap
 		call GetProcessHeap
