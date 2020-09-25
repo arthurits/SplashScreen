@@ -134,7 +134,7 @@ CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD
 	sub rsp, 8 * 4	; Shallow space for Win64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
 	mov r15, rbp
-	sub r15, rsp	; The difference rsp-rbp will be added to rsp at the end of the procedure
+	sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
 	
 	mov  rdi, lpTHIS
 
@@ -170,7 +170,7 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	sub rsp, 8 * 7	; Shallow space for Win64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
 	mov r15, rbp
-	sub r15d, esp	; The difference rsp-rbp will be added to rsp at the end of the procedure
+	sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
 
 	;xor r10, r10
 	;mov r10b, spl	; Align to 16 bits if needed
@@ -270,7 +270,7 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	mov rcx, hGLOBAL
 	call GlobalFree
 
-	add rsp, r15	; Restore the stack
+	add rsp, r15	; Restore the stack pointer to point to the return address
 
 	ret
 CFile_OpenFile ENDP
@@ -312,7 +312,7 @@ CFile_CloseFile PROC lpTHIS:QWORD
 CFile_CloseFile ENDP
 
 ;--------------------------------------------------------
-CFile_ConvertToLine PROC uses rax rdi rsi lpTHIS:QWORD
+CFile_ConvertToLine PROC uses rcx rdi rsi lpTHIS:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
@@ -320,13 +320,75 @@ CFile_ConvertToLine PROC uses rax rdi rsi lpTHIS:QWORD
 ; Returns: EAX = sum, and the status flags (Carry, ; Overflow, etc.) are changed.
 ; Requires: nothing
 ;---------------------------------------------------------
+	
 	mov rdi, lpTHIS		; get the parameter passed on the stack to the function
+
+	mov rcx, (CFile ptr[rdi]).bytesRead
+	mov rsi, (CFile ptr[rdi]).ptrHeapText
+
+	loop_ConvertToLine:
+		mov   ax, WORD PTR [rsi]
+		cmp ax, 13		; If ax==13
+		jne CFile_ConvertToLine_False_01
+			mov WORD PTR [rsi], 0		; True
+		CFile_ConvertToLine_False_01:	; False
+        add     rsi, 2
+    loop    loop_ConvertToLine
 
 	ret
 CFile_ConvertToLine ENDP
 
 CFile_GetLine PROC uses rcx rdi rsi lpTHIS:QWORD
+	
 	mov rdi, lpTHIS		; get the parameter passed on the stack to the function
+
+	mov	rsi, (CFile ptr[rdi]).ptrLine
+	;mov ecx, [edi].ptrHeapText
+	;sub ecx, esi
+	;shr ecx, 1
+	;add ecx, [edi].bytesRead
+
+	mov rcx, (CFile ptr[rdi]).bytesRead
+	shl rcx, 1	;multiply by 2 since we are using Words for each character
+	add rcx, (CFile ptr[rdi]).ptrHeapText
+	sub rcx, rsi
+	shr rcx, 1	;divide by 2 to get the number of characters
+
+	; If we are at the beginning of the text, just return the address
+	cmp rsi, (CFile ptr[rdi]).ptrHeapText	; .IF (esi == [edi].ptrHeapText)
+	jne CFile_GetLine_False_01
+		mov eax, esi						; True
+		add esi, 2
+		jmp exit_GetLine
+	CFile_GetLine_False_01:					; False
+
+	iterate:
+	mov ax, WORD PTR [rsi]
+	cmp ax, 0	; .IF (eax==0)
+	jne CFile_GetLine_False_02
+		cmp rcx, 1		; If we are at the end (ax==0), return NULL
+		jne CFile_GetLine_False_03
+			xor rax, rax
+			jmp CFile_GetLine_EndIf_03:
+		CFile_GetLine_False_03:
+			add rsi, 4	; Move 2+2 (Chr 13 + chr 10)
+			mov rax, rsi
+		CFile_GetLine_EndIf_03:
+		jmp exit_GetLine
+	CFile_GetLine_False_02:
+		add rsi, 2		; Move to the next character
+	loop iterate
+
+	exit_GetLine:
+	;If we are at the end, just reset the Line pointer to the beginning of the text
+	cmp rcx, 1		; .IF ecx== 1
+	jne CFile_GetLine_False_04
+		mov rcx, (CFile ptr[rdi]).ptrHeapText 
+		mov (CFile ptr[rdi]).ptrLine, rcx
+		jmp CFile_GetLine_EndIf_04
+	CFile_GetLine_False_04:
+		mov (CFile ptr[rdi]).ptrLine, rsi
+	CFile_GetLine_EndIf_04:
 
 	ret
 CFile_GetLine ENDP
