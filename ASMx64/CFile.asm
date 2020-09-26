@@ -79,8 +79,8 @@ _CFile_ equ 1
 	  QWORD OFFSET CFile_Dispose
 	  QWORD OFFSET CFile_ConvertToLine
 	  QWORD OFFSET CFile_GetLine
-	WORD	0
-	QWORD	0, 0, 0, 0
+	  WORD	0
+	  QWORD	0, 0, 0, 0
    CFile_initend equ $-CFile_initdata
 
 ;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\ASM x86\Debug\prueba.txt",0
@@ -92,7 +92,7 @@ MAXSIZE equ 260
 MEMSIZE equ 65535
 
 .data?
-SizeReadWrite2 QWORD ?	; number of bytes actually read or write
+SizeReadWrite2 QWORD ?	; number of bytes actually read or written
 
 .code
 ; --=====================================================================================--
@@ -104,7 +104,7 @@ CFile_Init  PROC uses rsi rdi lpTHIS:QWORD
 
 	cld 
 	
-	; asign the class methods to pointer lpTHIS
+	; Asign the class methods to pointer lpTHIS
 	mov 	rsi, offset CFile_initdata
 	mov 	rdi, lpTHIS
 	mov 	rcx, CFile_initend
