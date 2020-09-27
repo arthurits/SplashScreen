@@ -119,10 +119,6 @@ CFile_Init  PROC uses rsi rdi lpTHIS:QWORD
 	;Initialization code
 	;assume rdi:nothing
 
-	;pop		rcx
-	;pop		rdi
-	;pop		rsi
-
    ret
 CFile_Init ENDP
 
@@ -133,8 +129,8 @@ CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD
 	; Stack alignment
 	sub rsp, 8 * 4	; Shallow space for Win64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
-	mov r15, rbp
-	sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
+	;mov r15, rbp
+	;sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
 	
 	mov  rdi, lpTHIS
 
@@ -150,8 +146,7 @@ CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD
 	call GlobalFree
 	next02:   
 	
-	; Restore the stack pointer to point to the return address
-	add rsp, r15
+	;add rsp, r15	; Restore the stack pointer to point to the return address
 	ret
 CFile_Destructor ENDP
 
@@ -169,8 +164,8 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 
 	sub rsp, 8 * 7	; Shallow space for Win64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
-	mov r15, rbp
-	sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
+	;mov r15, rbp
+	;sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
 
 	;xor r10, r10
 	;mov r10b, spl	; Align to 16 bits if needed
@@ -270,7 +265,7 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	mov rcx, hGLOBAL
 	call GlobalFree
 
-	add rsp, r15	; Restore the stack pointer to point to the return address
+	;add rsp, r15	; Restore the stack pointer to point to the return address
 
 	ret
 CFile_OpenFile ENDP
@@ -369,12 +364,11 @@ CFile_GetLine PROC uses rcx rdi rsi lpTHIS:QWORD
 		cmp rcx, 1		; If we are at the end (ax==0), return NULL
 		jne CFile_GetLine_False_03
 			xor rax, rax
-			jmp CFile_GetLine_EndIf_03:
+			jmp exit_GetLine
 		CFile_GetLine_False_03:
 			add rsi, 4	; Move 2+2 (Chr 13 + chr 10)
 			mov rax, rsi
-		CFile_GetLine_EndIf_03:
-		jmp exit_GetLine
+			jmp exit_GetLine
 	CFile_GetLine_False_02:
 		add rsi, 2		; Move to the next character
 	loop iterate

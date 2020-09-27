@@ -5,37 +5,33 @@ endif
 ifndef _CSplashScreen_
 _CSplashScreen_ equ 1
 
-include C:\masm32\include\windows.inc
-include C:\masm32\include\kernel32.inc
-include C:\masm32\include\Ole32.inc
-include C:\masm32\include\gdi32.inc
-include C:\masm32\include\gdiplus.inc
-include C:\masm32\include\user32.inc
-include C:\masm32\include\shlwapi.inc	; For PathRemoveFileSpec and PathCombine
-include C:\masm32\include\comdlg32.inc
+;include C:\masm32\include\windows.inc
+;include C:\masm32\include\kernel32.inc
+;include C:\masm32\include\Ole32.inc
+;include C:\masm32\include\gdi32.inc
+;include C:\masm32\include\gdiplus.inc
+;include C:\masm32\include\user32.inc
+;include C:\masm32\include\shlwapi.inc	; For PathRemoveFileSpec and PathCombine
+;include C:\masm32\include\comdlg32.inc
 
 ;WindowProc      proto CALLBACK
-m_nSplashWidth equ 800
-m_nSplashHeight equ 500
-m_SplashBackgroundColor  equ 0FF000000h	; Color constants in gdipluscolor.h
-m_SplashColor  equ 0FF000000h
 
 .data?
 ; --=====================================================================================--
 ; CLASS STRUCTURE
 ; --=====================================================================================--
 	CSplashScreen STRUCT
-		Destructor		QWORD	?
-		Show			QWORD	?
+		Destructor				QWORD	?
+		Show					QWORD	?
 		RegisterWindowClass		QWORD	?
-		UnregisterWindowClass			QWORD	?
-		CreateBitmapImage	QWORD	?
-		lpModuleName		LPCSTR	?
-		lpszImagePath	QWORD	?
-		lpszAppPath		QWORD	?
-		intFadeOutTime	DWORD	?
-		intFadeOutEnd	DWORD	?
-		blend			BLENDFUNCTION	<>	; DWORD 4 bytes long
+		UnregisterWindowClass	QWORD	?
+		CreateBitmapImage		QWORD	?
+		lpModuleName			LPCSTR	?
+		lpszImagePath			QWORD	?
+		lpszAppPath				QWORD	?
+		intFadeOutTime			DWORD	?
+		intFadeOutEnd			DWORD	?
+		blend					BLENDFUNCTION	<>	; DWORD 4 bytes long
 	CSplashScreen ENDS
 
 .data
@@ -55,14 +51,18 @@ m_SplashColor  equ 0FF000000h
 	gdipSI GdiplusStartupInput <1>  ; version must be 1
 	;strEventName_1 BYTE "CloseSplashWindowEvent", 0
 	;strEventName_2 BYTE "CloseSplashScreenWithoutFadeEvent", 0
-	UCSTR strEventName_1, "CloseSplashScreenEvent", 0
-	UCSTR strEventName_2, "CloseSplashScreenWithoutFadeEvent", 0
-	UCSTR strClassName, "SplashScreenClass", 0
+	strEventName_1	WORD	"C", "l", "o", "s", "e", "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "E", "v", "e", "n", "t", 0
+	strEventName_2	WORD	"C", "l", "o", "s", "e", "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "W", "i", "t", "h", "o", "u", "t", "F", "a", "d", "e", "E", "v", "e", "n", "t", 0
+	strClassName	WORD	"S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "C", "l", "a", "s", "s", 0
 	;UCSTR strIm, "Dark night 02.jpg", 0
 
 .const 
 	MAXPATH equ 260
 
+	m_nSplashWidth equ 800
+	m_nSplashHeight equ 500
+	m_SplashBackgroundColor  equ 0FF000000h	; Color constants in gdipluscolor.h
+	m_SplashColor  equ 0FF000000h
 
 .code
 

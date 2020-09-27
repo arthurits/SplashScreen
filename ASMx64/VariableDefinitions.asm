@@ -36,6 +36,7 @@ COLORREF	typedef	DWORD
 HMODULE	typedef	QWORD
 LPCSTR	typedef	QWORD
 LPCWSTR	typedef	QWORD
+LPCTSTR	typedef QWORD
 
 ; ************************** Win64 structs ********************************
 LARGE_INTEGER UNION
