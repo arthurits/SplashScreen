@@ -47,7 +47,7 @@ _CSplashScreen_ equ 1
 		DWORD	0, 0, 0
 	CSplashScreen_initend equ $-CSplashScreen_initdata
 
-    gdiToken	DWORD	0
+    gdiToken	QWORD	0
 	gdipSI GdiplusStartupInput <1>  ; version must be 1
 	;strEventName_1 BYTE "CloseSplashWindowEvent", 0
 	;strEventName_2 BYTE "CloseSplashScreenWithoutFadeEvent", 0
@@ -87,7 +87,7 @@ CSplashScreen_Init PROC uses rcx rsi rdi lpTHIS:QWORD, hInstance:QWORD, strImage
 		mov rax, hInstance
 		mov (CSplashScreen PTR [rdi]).lpModuleName, rax
 		mov rax, strImage
-		mov (CSplashScreen PTR [rdi]).lpszImagePath, eax
+		mov (CSplashScreen PTR [rdi]).lpszImagePath, rax
 		mov rax, strApp
 		mov (CSplashScreen PTR [rdi]).lpszAppPath, rax
 		mov eax, intFadeOutTime
@@ -114,7 +114,7 @@ CSplashScreen_Destructor ENDP
 
 
 ;--------------------------------------------------------
-CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
+CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
@@ -130,9 +130,7 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 	LOCAL hdcScreen	:HDC
 	
 	sub rsp, 8 * 4	; Shallow space for Win64 calls
-	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
-	mov r15, rbp
-	sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bitsdure
 
 	mov  rdi, lpTHIS
 
@@ -141,7 +139,7 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 	mov rcx, NULL
 	call CoInitializeEx		; invoke CoInitializeEx, 0, COINIT_APARTMENTTHREADED or COINIT_DISABLE_OLE1DDE
 	cmp rax, S_OK		; .IF (rax == S_OK) Operation successful 0x00000000h
-	jne exit_Show		; rax != S_OK means that the COM library could not be opened
+	jl exit_Show		; rax < S_OK means that the COM library could not be opened
 	
 	; Create the named close splash screen event, making sure we're the first process to create it
 	mov rcx, ERROR_SUCCESS
@@ -177,35 +175,27 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 	mov hdcScreen, rax
 
 	; Create the bitmap (from file or default) that will be shown in the splash window
-	push rdi
+	mov QWORD [rsp], rdi
 	call CSplashScreen_CreateBitmapImage
-	add rsp, 8
 	mov hBitmap, rax
 
-	push rdi
-	call CSplashScreen_RegisterWindowClass
-	add rsp, 8
-
-	cmp hBitmap, NULL	; .IF (hBitmap!=NULL)
+	cmp rax, NULL	; .IF (hBitmap!=NULL)
 	je exit_Show		; if hBitmap==0 then exit
 		; if hBitmap exists, then create the splash window and set the bitmap image
-		push rdi
+		call CSplashScreen_RegisterWindowClass
 		call CSplashScreen_CreateSplashWindow
-		add rsp, 8
 		mov hSplashWnd, rax
 		
-		push hBitmap
-		push rax
-		push rdi
+		mov QWORD [rsp + 16], hBitmap
+		mov QWORD [rsp + 8], rax
+		; mov QWORD [rsp], rdi		; Not necessary, it's already there
 		call CSplashScreen_SetSplashImage	; returns rax=0 if unsuccessful
-		add rsp, 24
 
 	cmp rax, NULL	; .IF (eax!=0)
 	je exit_Show	; if rax==0 then exit
 		; if file exists, then launch the application
-		push rdi
 		call CSplashScreen_LaunchApplication	; Returns the handle of the launched application in eax
-		add rsp, 8
+
 		mov rbx, rax
 		mov rcx, rax
 		call GetProcessId	; invoke GetProcessId, eax
@@ -255,14 +245,12 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 	; Close the COM library
 	call CoUninitialize		; invoke CoUninitialize
 
-	; Restore the stack pointer to point to the return address
-	add rsp, r15
-	
+	;add rsp, r15	; Restore the stack pointer to point to the return address
 	ret
 CSplashScreen_Show ENDP
 
 ;--------------------------------------------------------
-CSplashScreen_CreateBitmapImage PROC uses rdi r15 lpTHIS:QWORD
+CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
@@ -287,8 +275,6 @@ CSplashScreen_CreateBitmapImage PROC uses rdi r15 lpTHIS:QWORD
 	
 	sub rsp, 8 * 6	; Shallow space for Win64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
-	mov r15, rbp
-	sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
 
 	mov  rdi, lpTHIS
 
@@ -335,29 +321,25 @@ CSplashScreen_CreateBitmapImage PROC uses rdi r15 lpTHIS:QWORD
 	invoke GdiplusShutdown, ADDR gdiToken
 	mov eax, hBitmap	; This has to be deallocated later by the user
 
-
-	; Restore the stack pointer to point to the return address
-	add rsp, r15
-
+	; add rsp, r15	; Restore the stack pointer to point to the return address
 	ret
 CSplashScreen_CreateBitmapImage ENDP
 
 ; --=====================================================================================--
 ; Registers a window class for the splash and splash owner windows.
 ; --=====================================================================================--
-CSplashScreen_RegisterWindowClass PROC uses edi lpTHIS:DWORD
+CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
 	; https://gist.github.com/DrFrankenstein/9810bbf5cad98b110281
 	LOCAL   wc: WNDCLASS
 
 	;Initialize wc with zeroes
     mov     ecx, sizeof WNDCLASS
     xor     eax, eax
-    lea     edi, wc
+    lea     rdi, wc
     rep stosb
 
 	; Get this pointer
-	mov  edi, lpTHIS
-	assume edi:PTR CSplashScreen
+	mov  rdi, lpTHIS
 
     ;Register the window class
     ;mov     wc.lpfnWndProc, OFFSET WindowProc
@@ -374,21 +356,19 @@ CSplashScreen_RegisterWindowClass PROC uses edi lpTHIS:DWORD
 	;wc.hCursor = LoadCursor(NULL, IDC_ARROW); 
 	;wc.lpszClassName = m_strSplashClass.c_str();
 
-	assume edi:nothing
 	ret
 CSplashScreen_RegisterWindowClass ENDP
 
 ; --=====================================================================================--
 ; Registers a window class for the splash and splash owner windows.
 ; --=====================================================================================--
-CSplashScreen_UnregisterWindowClass PROC uses edi lpTHIS:DWORD
-	mov  edi, lpTHIS
-	assume edi:PTR CSplashScreen
+CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
+	mov  rdi, lpTHIS
 
 	;invoke GetModuleHandle, 0
-	invoke UnregisterClass, OFFSET strClassName, [edi].lpModuleName
+	invoke UnregisterClass, OFFSET strClassName, (CSplashScreen PTR [rdi]).lpModuleName
 
-	assume edi:nothing
+	assume rdi:nothing
 	ret
 CSplashScreen_UnregisterWindowClass ENDP
 

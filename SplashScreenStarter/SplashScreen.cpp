@@ -325,7 +325,8 @@ void CSplashScreen::Show() {
 	if (!m_boolFileExists) return;
 
 	// Open the COM library
-	CoInitializeEx(0, COINIT::COINIT_APARTMENTTHREADED);
+	HRESULT hr = CoInitializeEx(0, COINIT::COINIT_APARTMENTTHREADED | COINIT::COINIT_DISABLE_OLE1DDE);
+	if (FAILED(hr)) return;
 
 	// create the named close splash screen event, making sure we're the first process to create it
 	SetLastError(ERROR_SUCCESS);

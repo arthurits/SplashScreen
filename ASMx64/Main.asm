@@ -179,8 +179,7 @@ main proc
 	; Exit
 	exit_main:
 		mov   rcx, 0
-		call ExitProcess
-	;invoke ExitProcess, rcx
+		call ExitProcess	; invoke ExitProcess, 0
 
 main endp
 
@@ -188,29 +187,28 @@ main endp
 ;*************************************************
 ; Computes the numeric value represented by a Unicode string
 ; Receives: the address of the null-terminated array of chars in Unicode (2 bytes per char)
-; Returns: eax cointains the total numeric value represented by the string
+; Returns: rax cointains the total numeric value represented by the string
 ; Preconditions: none
-; Registers changed:  eax, ebx, ecx, esi
+; Registers changed:  rax, rbx, rcx, rdx
 ; https://stackoverflow.com/questions/13664778/converting-string-to-integer-in-masm-esi-difficulty
 ;*************************************************
-StringToInt PROC uses rbx rcx rsi lpString:QWORD
+StringToInt PROC uses rbx rcx rdx lpString:QWORD
 	xor rax, rax	; Total counter
 	xor rbx, rbx	; Char pointer
 	mov rcx, 10d	; Decimal factor multiplier
-	;xor esi, esi
-	mov rsi, lpString    ; Point at the beginning of the string
+	mov rdx, lpString    ; Point at the beginning of the string
 
 	; Loop through each char in string
 	loopString:
 		; Check wether we reached the end of the string
-		cmp WORD PTR [rsi], 0000h
+		cmp WORD PTR [rdx], 0000h
 		je exit_StringToInt
 
 		; Multiply the accumulated quantity by 10
 		mul rcx
 
 		; Subtract 48 from ASCII value (number 0) of current char to get integer
-		mov     bx, WORD PTR [rsi]
+		mov     bx, WORD PTR [rdx]
 		sub     bx, 0048d        
 
 		; Error checking to ensure values are digits 0-9
@@ -221,7 +219,7 @@ StringToInt PROC uses rbx rcx rsi lpString:QWORD
 
 		; If it's a digit, add to the total and go on with the loop
 		add     rax, rbx	; Add to total counter
-		add     rsi, 2		; Point to next char (2 bytes per char)
+		add     rdx, 2d		; Point to next char (2 bytes per char)
     jmp loopString
 
 	jmp exit_StringToInt
@@ -231,6 +229,6 @@ StringToInt PROC uses rbx rcx rsi lpString:QWORD
 	
 	exit_StringToInt:
 	ret
-StringToInt ENDP
+StringToInt endp
 
-end
+END
