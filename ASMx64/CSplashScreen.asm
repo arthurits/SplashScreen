@@ -129,8 +129,8 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 	LOCAL hSplashWnd :HANDLE
 	LOCAL hdcScreen	:HDC
 	
-	sub rsp, 8 * 4	; Shallow space for Win64 calls
-	and rsp, -10h	; Add 8 bits if needed to align to 16 bitsdure
+	sub rsp, 8 * 5	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 
 	mov  rdi, lpTHIS
 
@@ -186,36 +186,37 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 		call CSplashScreen_CreateSplashWindow
 		mov hSplashWnd, rax
 		
-		mov QWORD [rsp + 16], hBitmap
-		mov QWORD [rsp + 8], rax
-		; mov QWORD [rsp], rdi		; Not necessary, it's already there
+		mov QWORD PTR [rsp + 16], hBitmap	; 3rd argument
+		mov QWORD PTR [rsp + 8], rax		; 2nd argument
+		; mov QWORD PTR [rsp], rdi			; Not necessary, it's already there
 		call CSplashScreen_SetSplashImage	; returns rax=0 if unsuccessful
 
-	cmp rax, NULL	; .IF (eax!=0)
+	cmp rax, NULL	; .IF (rax!=0)
 	je exit_Show	; if rax==0 then exit
 		; if file exists, then launch the application
-		call CSplashScreen_LaunchApplication	; Returns the handle of the launched application in eax
+		; mov QWORD [rsp], rdi					; Not necessary, it's already there
+		call CSplashScreen_LaunchApplication	; Returns the handle of the launched application in rax
 
-		mov rbx, rax
+		mov rbx, rax	; Handle of the launched application
 		mov rcx, rax
 		call GetProcessId	; invoke GetProcessId, eax
 		mov rcx, rax
 		call AllowSetForegroundWindow	; invoke AllowSetForegroundWindow, eax
 		
 		lea rax, aHandles 
-		mov DWORD PTR [rax + 0], rbx
+		mov QWORD PTR [rax + 0], rbx
 		mov rbx, hCloseSplashEvent
-		mov DWORD PTR [rax + 8], rbx
+		mov QWORD PTR [rax + 8], rbx
 		mov rbx, hCloseSplashWithoutFadeEvent
-		mov DWORD PTR [rax + 16], rbx
+		mov QWORD PTR [rax + 16], rbx
 		
-		push INFINITE
-		push rax
-		push 3
-		push hSplashWnd
-		push rdi
+		mov QWORD PTR [rsp+32], INFINITE
+		mov QWORD PTR [rsp+24], rax
+		mov QWORD PTR [rsp+16], 3
+		mov QWORD PTR [rsp+8], hSplashWnd
+		mov QWORD PTR [rsp], rdi			; Necessary since Win32 API calls could have modified this shallow space
 		call CSplashScreen_PumpMsgWaitForMultipleObjects	; lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD
-		add rsp, 40
+		;add rsp, 40
 
 	exit_Show:
 	mov rdx, hdcScreen
@@ -239,7 +240,7 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 	; Destroy the window and unregister the class
 	mov rcx, hSplashWnd
 	call DestroyWindow	; invoke DestroyWindow, hSplashWnd
-	push rdi
+	mov QWORD PTR [rsp], rdi	; Necessary since Win32 API calls could have modified this shallow space
 	call CSplashScreen_UnregisterWindowClass
 
 	; Close the COM library
@@ -250,14 +251,14 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 CSplashScreen_Show ENDP
 
 ;--------------------------------------------------------
-CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
-;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
 ; signed or unsigned.
 ; Returns: EAX = sum, and the status flags (Carry, ; Overflow, etc.) are changed.
 ; Requires: nothing
 ;---------------------------------------------------------
+CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
+
 	;LOCAL hGdiImage :DWORD
 	;LOCAL wbuffer :DWORD
 	LOCAL hBitmap :QWORD
@@ -273,53 +274,80 @@ CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
 	mov GpGraphics, 0
 	mov GpSolidFill, 0
 	
-	sub rsp, 8 * 6	; Shallow space for Win64 calls
-	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
+	sub rsp, 8 * 6	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 
-	mov  rdi, lpTHIS
+	mov rdi, lpTHIS
 
 	mov gdipSI.GdiplusVersion, 1
 	mov gdipSI.SuppressBackgroundThread, 0
-	invoke GdiplusStartup, ADDR gdiToken, ADDR gdipSI, NULL
+	mov r8, NULL
+	mov rdx, ADDR gdipSI
+	mov rcx, ADDR gdiToken
+	call GdiplusStartup		; invoke GdiplusStartup, ADDR gdiToken, ADDR gdipSI, NULL
 
 	; If GDI could not be started, then exit
-	.IF gdiToken == 0
-		jmp exit_CreateBitmapImage
-	.ENDIF
+	cmp gdiToken, 0		; 	.IF gdiToken == 0
+	je exit_CreateBitmapImage
 	
 	;invoke GdipCreateBitmapFromFile, ADDR ImagePath, ADDR hGdiImage
-	invoke GdipCreateBitmapFromFile, [edi].lpszImagePath, ADDR GpBitmap
-	.IF (GpBitmap == NULL)
-		jmp exit_DefaultBitmap
-	.ENDIF
-	invoke GdipCreateHBITMAPFromBitmap, GpBitmap, ADDR hBitmap, m_SplashBackgroundColor
-	.IF (hBitmap == NULL)
-		jmp exit_DefaultBitmap
-	.ENDIF
-	invoke GdipDisposeImage, GpBitmap
+	mov rdx, ADDR GpBitmap
+	mov rcx, (CSplashScreen PTR [rdi]).lpszImagePath
+	call GdipCreateBitmapFromFile		; invoke GdipCreateBitmapFromFile, [rdi].lpszImagePath, ADDR GpBitmap
+	cmp GpBitmap, NULL					; .IF (GpBitmap == NULL)
+	je exit_DefaultBitmap
+
+	mov r8, m_SplashBackgroundColor
+	mov rdx, ADDR hBitmap
+	mov rcx, GpBitmap
+	call GdipCreateHBITMAPFromBitmap	; invoke GdipCreateHBITMAPFromBitmap, GpBitmap, ADDR hBitmap, m_SplashBackgroundColor
+	cmp hBitmap, NULL					; .IF (hBitmap == NULL)
+	je exit_DefaultBitmap
+	
+	mov rcx, GpBitmap
+	call GdipDisposeImage				; invoke GdipDisposeImage, GpBitmap
 	;invoke GetObject, hBitmap, SIZEOF image, ADDR image
 	jmp exit_CreateBitmapImage
 
 	; Creates a default bitmap (colors and dimensions defined atop)
 	; More information here: http://masm32.com/board/index.php?topic=5731.15
 	exit_DefaultBitmap:
+		mov QWORD PTR [rsp+40], ADDR GpBitmap
+		mov QWORD PTR [rsp+32], NULL
+		mov r9, PixelFormat32bppARGB
+		mov r8, 0
+		mov rdx, m_nSplashHeight
+		mov rcx, m_nSplashWidth
+		call GdipCreateBitmapFromScan0		; invoke GdipCreateBitmapFromScan0, m_nSplashWidth, m_nSplashHeight, 0, PixelFormat32bppARGB, NULL, ADDR GpBitmap
+		mov rdx, ADDR GpGraphics
+		mov rcx, GpBitmap
+		call GdipGetImageGraphicsContext	; invoke GdipGetImageGraphicsContext, GpBitmap, ADDR GpGraphics
+		mov rdx, ADDR GpSolidFill
+		mov rcx, m_SplashColor
+		call GdipCreateSolidFill			; invoke GdipCreateSolidFill, m_SplashColor, ADDR GpSolidFill
+		mov QWORD PTR [rsp+40], m_nSplashHeight
+		mov QWORD PTR [rsp+32], m_nSplashWidth
+		mov r9, 0
+		mov r8, 0
+		mov rdx, GpSolidFill
+		mov rcx, GpGraphics
+		call GdipFillRectangleI				; invoke GdipFillRectangleI, GpGraphics, GpSolidFill, 0, 0, m_nSplashWidth, m_nSplashHeight
+		mov r8, m_SplashBackgroundColor
+		mov rdx, ADDR hBitmap
+		mov rcx, GpBitmap
+		call GdipCreateHBITMAPFromBitmap	; invoke GdipCreateHBITMAPFromBitmap, GpBitmap, ADDR hBitmap, m_SplashBackgroundColor 
 
-	invoke GdipCreateBitmapFromScan0, m_nSplashWidth, m_nSplashHeight, 0, PixelFormat32bppARGB, NULL, ADDR GpBitmap
-	invoke GdipGetImageGraphicsContext, GpBitmap, ADDR GpGraphics
-	invoke GdipCreateSolidFill, m_SplashColor, ADDR GpSolidFill
-	invoke GdipFillRectangleI, GpGraphics, GpSolidFill, 0, 0, m_nSplashWidth, m_nSplashHeight
-	invoke GdipCreateHBITMAPFromBitmap, GpBitmap, ADDR hBitmap, m_SplashBackgroundColor 
-
-	invoke GdipFree, GpSolidFill
-	invoke GdipFree, GpGraphics
-	invoke GdipDisposeImage, GpBitmap
-	
-
+		mov rcx, GpSolidFill
+		call GdipFree			; invoke GdipFree, GpSolidFill
+		mov rcx, GpGraphics
+		call GdipFree			; invoke GdipFree, GpGraphics
+		mov rcx, GpBitmap
+		call GdipDisposeImage	; invoke GdipDisposeImage, GpBitmap
 
 	exit_CreateBitmapImage:
-
-	invoke GdiplusShutdown, ADDR gdiToken
-	mov eax, hBitmap	; This has to be deallocated later by the user
+		mov rcx, ADDR gdiToken
+		call GdiplusShutdown	; invoke GdiplusShutdown, ADDR gdiToken
+		mov rax, hBitmap		; This has to be deallocated later by the user
 
 	; add rsp, r15	; Restore the stack pointer to point to the return address
 	ret
@@ -330,26 +358,32 @@ CSplashScreen_CreateBitmapImage ENDP
 ; --=====================================================================================--
 CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
 	; https://gist.github.com/DrFrankenstein/9810bbf5cad98b110281
-	LOCAL   wc: WNDCLASS
+	LOCAL   wc: WNDCLASSEX
 
 	;Initialize wc with zeroes
-    mov     ecx, sizeof WNDCLASS
-    xor     eax, eax
+    mov     rcx, sizeof WNDCLASSEX
+    xor     rax, rax
     lea     rdi, wc
     rep stosb
+
+	sub rsp, 8 * 1	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 
 	; Get this pointer
 	mov  rdi, lpTHIS
 
     ;Register the window class
-    ;mov     wc.lpfnWndProc, OFFSET WindowProc
+    mov	rcx, 0
+	call GetModuleHandle	; invoke GetModuleHandle, 0
 	mov     wc.lpfnWndProc, DefWindowProc	; http://masm32.com/board/index.php?topic=2469.0
-    invoke  GetModuleHandle, 0
-    mov     wc.hInstance, eax
+	mov		wc.cbSize, sizeof WNDCLASSEX
+    mov     wc.hInstance, rax
     mov     wc.lpszClassName, OFFSET strClassName
-    invoke  RegisterClass, ADDR wc
+	mov rcx, ADDR wc
+    call RegisterClassEx	; invoke RegisterClassEx, ADDR wc
 
 	;Register the window class
+	;mov     wc.lpfnWndProc, OFFSET WindowProc
 	;wc.lpfnWndProc = DefWindowProc;
 	;wc.hInstance = m_hInstance;
 	;wc.hIcon = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_SPLASHICON));
@@ -363,45 +397,44 @@ CSplashScreen_RegisterWindowClass ENDP
 ; Registers a window class for the splash and splash owner windows.
 ; --=====================================================================================--
 CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
-	mov  rdi, lpTHIS
+	sub rsp, 8 * 2	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	mov rdi, lpTHIS
 
 	;invoke GetModuleHandle, 0
-	invoke UnregisterClass, OFFSET strClassName, (CSplashScreen PTR [rdi]).lpModuleName
+	mov rdx, (CSplashScreen PTR [rdi]).lpModuleName
+	mov rcx, OFFSET strClassName
+	call UnregisterClass		; invoke UnregisterClass, OFFSET strClassName, (CSplashScreen PTR [rdi]).lpModuleName
 
-	assume rdi:nothing
 	ret
 CSplashScreen_UnregisterWindowClass ENDP
 
 
-CSplashScreen_CreateSplashWindow PROC uses edi lpTHIS:DWORD
-	mov  edi, lpTHIS
-	assume edi:PTR CSplashScreen
-
-	;push NULL
-	;push [edi].lpModuleName
-	;push NULL
-	;push NULL
-	;push 0
-	;push 0
-	;push 0
-	;push 0
-	;mov eax, WS_POPUP or WS_VISIBLE
-	;push eax
-	;push NULL
-	;lea eax, strClassName
-	;push eax
-	;mov eax, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST
-	;push eax
-	;call CreateWindowEx
-
-	invoke CreateWindowEx, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST, OFFSET strClassName, NULL, WS_POPUP or WS_VISIBLE, 0, 0, 0, 0, NULL, NULL, [edi].lpModuleName, NULL
+CSplashScreen_CreateSplashWindow PROC uses edi lpTHIS:QWORD
+	mov  rdi, lpTHIS
+	sub rsp, 8 * 12	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	
+	mov QWORD PTR [rsp+56], NULL
+	mov QWORD PTR [rsp+48], (CSplashScreen PTR [rdi]).lpModuleName
+	mov QWORD PTR [rsp+40], NULL
+	mov QWORD PTR [rsp+32], NULL
+	mov QWORD PTR [rsp+24], 0
+	mov QWORD PTR [rsp+16], 0
+	mov QWORD PTR [rsp+8], 0
+	mov QWORD PTR [rsp], 0
+	mov r9, WS_POPUP or WS_VISIBLE
+	mov r8, NULL
+	mov rdx, OFFSET strClassName
+	mov rcx, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST
+	call CreateWindowEx
+	;invoke CreateWindowEx, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST, OFFSET strClassName, NULL, WS_POPUP or WS_VISIBLE, 0, 0, 0, 0, NULL, NULL, [edi].lpModuleName, NULL
 	; https://tuttlem.github.io/2015/09/14/windows-programs-with-masm32.html
 	
-	assume edi:nothing
 	ret
 CSplashScreen_CreateSplashWindow ENDP
 
-CSplashScreen_SetSplashImage PROC uses edi lpTHIS:DWORD, hwndSplash:HWND, hbmpSplash:HBITMAP
+CSplashScreen_SetSplashImage PROC uses edi lpTHIS:QWORD, hwndSplash:HWND, hbmpSplash:HBITMAP
 	LOCAL bm :BITMAP			; defined in wingdi.h
 	LOCAL ptZero :POINT			; defined in windef.h
 	LOCAL ptOrigin :POINT		; defined in windef.h
@@ -418,28 +451,37 @@ CSplashScreen_SetSplashImage PROC uses edi lpTHIS:DWORD, hwndSplash:HWND, hbmpSp
 	mov ptZero.x, 0
 	mov ptZero.y, 0
 
-    mov     ecx, SIZEOF monitorinfo
-    xor     eax, eax
-    lea     edi, monitorinfo
+    mov     rcx, SIZEOF monitorinfo
+    xor     rax, rax
+    lea     rdi, monitorinfo
     rep stosb
 
-	; Get this pointer
-	mov  edi, lpTHIS
-	assume edi:PTR CSplashScreen
+	sub rsp, 8 * 9	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	mov rdi, lpTHIS	; Get this pointer
 
 	; Get the dimensions of the bitmap used as the splash screen
-	invoke GetObject, hbmpSplash, SIZEOF bm, ADDR bm
-	mov eax, bm.bmWidth
-	mov sizeSplash.x, eax
-	mov eax, bm.bmHeight
-	mov sizeSplash.y, eax
+	mov r8, ADDR bm
+	mov rdx, sizeof bm
+	mov rcx, hbmpSplash
+	call GetObject		; invoke GetObject, hbmpSplash, SIZEOF bm, ADDR bm
+	mov rax, bm.bmWidth
+	mov sizeSplash.cx, rax
+	mov rax, bm.bmHeight
+	mov sizeSplash.cy, rax
 	
 	; Get the primary monitor's info
-	invoke MonitorFromPoint, ptZero.x, ptZero.y, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
-	mov hmonPrimary, eax
-	mov eax, SIZEOF monitorinfo
+	mov r8, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
+	mov rdx, ptZero.y
+	mov rcx, ptZero.x
+	call MonitorFromPoint	; invoke MonitorFromPoint, ptZero.x, ptZero.y, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
+	mov hmonPrimary, rax
+	mov rax, SIZEOF monitorinfo
 	mov monitorinfo.cbSize, eax
-	invoke GetMonitorInfo, hmonPrimary, ADDR monitorinfo
+	
+	mov rdx, ADDR monitorinfo
+	mov rcx, hmonPrimary
+	call GetMonitorInfo		; invoke GetMonitorInfo, hmonPrimary, ADDR monitorinfo
 
 	; Center the bitmap into the primary monitor
 	mov eax, monitorinfo.rcMonitor.right	; rcWork plus the windows taskbar
@@ -457,60 +499,78 @@ CSplashScreen_SetSplashImage PROC uses edi lpTHIS:DWORD, hwndSplash:HWND, hbmpSp
 	mov ptOrigin.y, eax
 
 	; Create a memory DC holding the splash bitmap
-	invoke GetDC, 0
-	mov hdcScreen, eax
-	invoke CreateCompatibleDC, hdcScreen
-	mov hdcMem, eax
-	invoke SelectObject, hdcMem, hbmpSplash
-	mov hbmpOld, eax
+	mov rcx, 0
+	call GetDC	; invoke GetDC, 0
+	mov hdcScreen, rax
+	mov rcx, rax
+	call CreateCompatibleDC		; invoke CreateCompatibleDC, hdcScreen
+	mov hdcMem, rax
+	mov rdx, hbmpSplash
+	mov rcx, rax
+	call SelectObject			; invoke SelectObject, hdcMem, hbmpSplash
+	mov hbmpOld, rax
 	
 	; Use the source image's alpha channel for blending
 	mov blend.BlendOp, AC_SRC_OVER		; 0x00
 	mov blend.BlendFlags, 0				; 0x00
 	mov blend.SourceConstantAlpha, 255	; 0xFF
 	mov blend.AlphaFormat, AC_SRC_ALPHA	; 0x01
-	; delete comment
+
 	; Paint the window (in the right location) with the alpha-blended bitmap
-	invoke UpdateLayeredWindow, hwndSplash, hdcScreen, ADDR ptOrigin, ADDR sizeSplash, hdcMem, ADDR ptZero, 000000000h, ADDR blend, ULW_ALPHA
+	mov QWORD PTR [rsp+32], ULW_ALPHA
+	mov QWORD PTR [rsp+24], ADDR blend
+	mov QWORD PTR [rsp+16], 000000000h
+	mov QWORD PTR [rsp+8], ADDR ptZero
+	mov QWORD PTR [rsp], hdcMem
+	mov r9, ADDR sizeSplash
+	mov r8, ADDR ptOrigin
+	mov rdx, hdcScreen
+	mov rcx, hwndSplash
+	call UpdateLayeredWindow	; invoke UpdateLayeredWindow, hwndSplash, hdcScreen, ADDR ptOrigin, ADDR sizeSplash, hdcMem, ADDR ptZero, 000000000h, ADDR blend, ULW_ALPHA
 
 	; Delete temporary objects
-	invoke SelectObject, hdcMem, hbmpOld
-	invoke DeleteDC, hdcMem
-	invoke ReleaseDC, NULL, hdcScreen
+		mov rdx, hbmpOld
+		mov rcx, hdcMem
+		call SelectObject		; invoke SelectObject, hdcMem, hbmpOld
+		mov rcx, hdcMem
+		call DeleteDC			; invoke DeleteDC, hdcMem
+		mov rdx, hdcScreen
+		mov rcx, NULL
+		call ReleaseDC			; invoke ReleaseDC, NULL, hdcScreen
 
-	invoke SetWindowPos, hwndSplash,	; handle to window
-				HWND_TOPMOST,			; placement-order handle ((HWND)-1)
-				ptOrigin.x,				; horizontal position
-				ptOrigin.y,				; vertical position
-				sizeSplash.x,			; width
-				sizeSplash.y,			; height
-				SWP_SHOWWINDOW			; window-positioning options (0x0040);
+	; Center the window
+	mov QWORD PTR [rsp+16], SWP_SHOWWINDOW	; window-positioning options (0x0040);
+	mov QWORD PTR [rsp+8], sizeSplash.y		; height
+	mov QWORD PTR [rsp], sizeSplash.x		; width
+	mov r9, ptOrigin.y						; vertical position
+	mov r8, ptOrigin.x						; horizontal position
+	mov rdx, HWND_TOPMOST					; placement-order handle ((HWND)-1)
+	mov rcx, hwndSplash						; handle to window
+	call SetWindowPos		; invoke SetWindowPos, hwndSplash, HWND_TOPMOST, ptOrigin.x, ptOrigin.y, sizeSplash.x, sizeSplash.y, SWP_SHOWWINDOW
 
-
-	assume edi:nothing
 	ret
 CSplashScreen_SetSplashImage ENDP
 
-CSplashScreen_LaunchApplication PROC uses edi lpTHIS:DWORD
+CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	LOCAL szCurrentFolder[MAX_PATH]:WORD
 	LOCAL szApplicationPath[MAX_PATH]:WORD
 	LOCAL startupinfo:STARTUPINFO
 	LOCAL processinfo:PROCESS_INFORMATION
 	
 	; Initialize structs to 0
-	mov ecx, SIZEOF startupinfo
-	xor eax, eax
-	lea edi, startupinfo
+	mov rcx, SIZEOF startupinfo
+	xor rax, rax
+	lea rdi, startupinfo
 	rep stosb
 	
-	mov ecx, SIZEOF processinfo
-	xor eax, eax
-	lea edi, processinfo
+	mov rcx, SIZEOF processinfo
+	xor rax, rax
+	lea rdi, processinfo
 	rep stosb
 
-	; Set this pointer
-	mov  edi, lpTHIS
-	assume edi:PTR CSplashScreen
+	sub rsp, 8 * 10	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	mov rdi, lpTHIS	; Get this pointer
 	 
 	; Get folder of the current process
 	invoke GetModuleFileName, NULL, ADDR szCurrentFolder, MAX_PATH

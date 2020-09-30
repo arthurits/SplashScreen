@@ -2,16 +2,58 @@
 externdef __imp_GetDC:PPROC
 GetDC equ <__imp_GetDC>
 
+externdef __imp_CreateWindowExA:PPROC
+CreateWindowExA equ <__imp_CreateWindowExA>
+externdef __imp_CreateWindowExW:PPROC
+CreateWindowExW equ <__imp_CreateWindowExW>
+  IFDEF __UNICODE__
+    CreateWindowEx equ <__imp_CreateWindowExW>
+  ELSE
+    CreateWindowEx equ <__imp_CreateWindowExA>
+  ENDIF
+
+externdef __imp_DefWindowProcA:PPROC
+DefWindowProcA equ <__imp_DefWindowProcA>
+externdef __imp_DefWindowProcW:PPROC
+DefWindowProcW equ <__imp_DefWindowProcW>
+  IFDEF __UNICODE__
+    DefWindowProc equ <__imp_DefWindowProcW>
+  ELSE
+    DefWindowProc equ <__imp_DefWindowProcA>
+  ENDIF
+
 externdef __imp_MessageBoxA:PPROC
 MessageBoxA equ <__imp_MessageBoxA>
 externdef __imp_MessageBoxW:PPROC
 MessageBoxW equ <__imp_MessageBoxW>
   IFDEF __UNICODE__
     MessageBox equ <__imp_MessageBoxW>
-  ELSEIF
+  ELSE
     MessageBox equ <__imp_MessageBoxA>
   ENDIF
 
+externdef __imp_RegisterClassExA:PPROC
+RegisterClassExA equ <__imp_RegisterClassExA>
+externdef __imp_RegisterClassExW:PPROC
+RegisterClassExW equ <__imp_RegisterClassExW>
+  IFDEF __UNICODE__
+    RegisterClassEx equ <__imp_RegisterClassExW>
+  ELSE
+    RegisterClassEx equ <__imp_RegisterClassExA>
+  ENDIF
+
+externdef __imp_SetWindowPos:PPROC
+SetWindowPos equ <__imp_SetWindowPos>
+
+externdef __imp_UnregisterClassA:PPROC
+UnregisterClassA equ <__imp_UnregisterClassA>
+externdef __imp_UnregisterClassW:PPROC
+UnregisterClassW equ <__imp_UnregisterClassW>
+  IFDEF __UNICODE__
+    UnregisterClass equ <__imp_UnregisterClassW>
+  ELSE
+    UnregisterClass equ <__imp_UnregisterClassA>
+  ENDIF
 
 ; Kernel32.lib
 externdef __imp_CreateEventA:PPROC
@@ -19,7 +61,7 @@ externdef __imp_CreateEventW:PPROC
 CreateEventW equ <__imp_CreateEventW>
   IFDEF __UNICODE__
     CreateEvent equ <__imp_CreateEventW>
-  ELSEIF
+  ELSE
     CreateEvent equ <__imp_CreateEventA>
   ENDIF
 
@@ -76,7 +118,7 @@ externdef __imp_CreateFileW:PPROC
 CreateFileW equ <__imp_CreateFileW>
   IFDEF __UNICODE__
     CreateFile equ <__imp_CreateFileW>
-  ELSEIF
+  ELSE
     CreateFile equ <__imp_CreateFileA>
   ENDIF
 

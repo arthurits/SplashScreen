@@ -34,6 +34,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </MASM>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{08470669-26BF-400B-B1CF-50B7DFAC5697}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
