@@ -573,55 +573,71 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	mov rdi, lpTHIS	; Get this pointer
 	 
 	; Get folder of the current process
-	invoke GetModuleFileName, NULL, ADDR szCurrentFolder, MAX_PATH
-	invoke PathRemoveFileSpec, ADDR szCurrentFolder	; http://masm32.com/board/index.php?topic=3646.0
+	mov r8, MAX_PATH
+	mov rdx, ADDR szCurrentFolder
+	mov rcx, NULL
+	call GetModuleFileName		; invoke GetModuleFileName, NULL, ADDR szCurrentFolder, MAX_PATH
+	mov rcx, ADDR szCurrentFolder
+	call PathRemoveFileSpec		; invoke PathRemoveFileSpec, ADDR szCurrentFolder	; http://masm32.com/board/index.php?topic=3646.0
 
-	mov ebx, [edi].lpszAppPath
+	mov rax, (CSplashScreen PTR [rdi]).lpszAppPath
 	
 	; Add the application name to the path
-	.IF (WORD PTR[ebx+2]==58 && WORD PTR[ebx+4]==92) ; ":" && "\\"
-		;mov lpszApplicationPath, eax
-	.ELSE
-		lea ebx, szApplicationPath
-		invoke PathCombine, ebx, ADDR szCurrentFolder, [edi].lpszAppPath
-		;invoke PathCombine, ADDR szApplicationPath, ADDR szCurrentFolder, [edi].lpszAppPath
-	.ENDIF
+	cmp WORD PTR[rax+2], 58		; .IF (WORD PTR[rax+2]==58 && WORD PTR[rax+4]==92) ; ":" && "\\"
+	jne CSplashScreen_LaunchApplication_False_01
+	cmp WORD PTR[rax+4], 92
+	jne CSplashScreen_LaunchApplication_False_01
+	jmp CSplashScreen_LaunchApplication_EndIf_01
+	CSplashScreen_LaunchApplication_False_01:
+		mov r8, [rdi].lpszAppPath
+		mov rdx, ADDR szCurrentFolder
+		lea rcx, szApplicationPath
+		call PathCombine		; invoke PathCombine, ebx, ADDR szCurrentFolder, [rdi].lpszAppPath
+	CSplashScreen_LaunchApplication_EndIf_01:
 
 	; Start the application
 	mov startupinfo.cb, SIZEOF startupinfo
-	invoke GetCommandLine
-	mov ecx, eax
-	invoke CreateProcess, ebx, ecx, NULL, NULL, FALSE, 0, NULL, ADDR szCurrentFolder, ADDR startupinfo, ADDR processinfo
-	;mov ebx, eax
-	;invoke CreateProcess, ADDR szApplicationPath, ebx, NULL, NULL, FALSE, 0, NULL, ADDR szCurrentFolder, ADDR startupinfo, ADDR processinfo
+	call GetCommandLine			; invoke GetCommandLine
+	mov QWORD PTR [rsp+40], ADDR processinfo
+	mov QWORD PTR [rsp+32], ADDR startupinfo
+	mov QWORD PTR [rsp+24], ADDR szCurrentFolder
+	mov QWORD PTR [rsp+16], NULL
+	mov QWORD PTR [rsp+8], 0
+	mov QWORD PTR [rsp], FALSE
+	mov r9, NULL
+	mov r8, NULL
+	mov rdx, rax
+	lea rcx, szApplicationPath 
+	call CreateProcess			; invoke CreateProcess, ADDR szApplicationPath, CommandLine, NULL, NULL, FALSE, 0, NULL, ADDR szCurrentFolder, ADDR startupinfo, ADDR processinfo
 
 	; Release in order to avoid memory leaks
-	invoke CloseHandle, processinfo.hThread
+	mov rcx, processinfo.hThread
+	call CloseHandle			; invoke CloseHandle, processinfo.hThread
 
 	; Return the handle of the launched application. The caller should release this using CloseHandle
-	mov eax, processinfo.hProcess
+	mov rax, processinfo.hProcess
 	
-	assume edi:nothing
 	ret
 CSplashScreen_LaunchApplication ENDP
 
-CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses edi lpTHIS:DWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
+CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses edi lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
 	LOCAL dwStartTickCount	:DWORD
 	LOCAL dwElapsed			:DWORD
 	LOCAL dwTimeOut			:DWORD
 	LOCAL dwWaitResult		:DWORD
-	;LOCAL hdcScreen			:HDC
+	;LOCAL hdcScreen		:HDC
 	LOCAL msg				:MSG
 
-	mov edi, lpTHIS
-	assume edi: PTR CSplashScreen
+	sub rsp, 8 * 10	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	mov rdi, lpTHIS	; Get this pointer
 
-	invoke GetTickCount
+	call GetTickCount		; invoke GetTickCount
 	mov dwStartTickCount, eax
 
 	Wait_Loop:
 		; Calculate timeout
-		invoke GetTickCount
+		call GetTickCount	; invoke GetTickCount
 		sub eax, dwStartTickCount
 		mov dwElapsed, eax
 

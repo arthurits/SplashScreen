@@ -22,6 +22,26 @@ DefWindowProcW equ <__imp_DefWindowProcW>
     DefWindowProc equ <__imp_DefWindowProcA>
   ENDIF
 
+externdef __imp_DispatchMessageA:PPROC
+DispatchMessageA equ <__imp_DispatchMessageA>
+externdef __imp_DispatchMessageW:PPROC
+DispatchMessageW equ <__imp_DispatchMessageW>
+  IFDEF __UNICODE__
+    DispatchMessage equ <__imp_DispatchMessageW>
+  ELSE
+    DispatchMessage equ <__imp_DispatchMessageA>
+  ENDIF
+
+externdef __imp_GetMessageA:PPROC
+GetMessageA equ <__imp_GetMessageA>
+externdef __imp_GetMessageW:PPROC
+GetMessageW equ <__imp_GetMessageW>
+  IFDEF __UNICODE__
+    GetMessage equ <__imp_GetMessageW>
+  ELSE
+    GetMessage equ <__imp_GetMessageA>
+  ENDIF
+
 externdef __imp_MessageBoxA:PPROC
 MessageBoxA equ <__imp_MessageBoxA>
 externdef __imp_MessageBoxW:PPROC
@@ -32,6 +52,25 @@ MessageBoxW equ <__imp_MessageBoxW>
     MessageBox equ <__imp_MessageBoxA>
   ENDIF
 
+externdef __imp_MsgWaitForMultipleObjects:PPROC
+MsgWaitForMultipleObjects equ <__imp_MsgWaitForMultipleObjects>
+
+externdef __imp_MsgWaitForMultipleObjectsEx:PPROC
+MsgWaitForMultipleObjectsEx equ <__imp_MsgWaitForMultipleObjectsEx>
+
+externdef __imp_PeekMessageA:PPROC
+PeekMessageA equ <__imp_PeekMessageA>
+externdef __imp_PeekMessageW:PPROC
+PeekMessageW equ <__imp_PeekMessageW>
+  IFDEF __UNICODE__
+    PeekMessage equ <__imp_PeekMessageW>
+  ELSE
+    PeekMessage equ <__imp_PeekMessageA>
+  ENDIF
+
+externdef __imp_PostQuitMessage:PPROC
+PostQuitMessage equ <__imp_PostQuitMessage>
+
 externdef __imp_RegisterClassExA:PPROC
 RegisterClassExA equ <__imp_RegisterClassExA>
 externdef __imp_RegisterClassExW:PPROC
@@ -41,6 +80,9 @@ RegisterClassExW equ <__imp_RegisterClassExW>
   ELSE
     RegisterClassEx equ <__imp_RegisterClassExA>
   ENDIF
+
+externdef __imp_SetTimer:PPROC
+SetTimer equ <__imp_SetTimer>
 
 externdef __imp_SetWindowPos:PPROC
 SetWindowPos equ <__imp_SetWindowPos>
@@ -54,6 +96,13 @@ UnregisterClassW equ <__imp_UnregisterClassW>
   ELSE
     UnregisterClass equ <__imp_UnregisterClassA>
   ENDIF
+
+externdef __imp_TranslateMessage:PPROC
+TranslateMessage equ <__imp_TranslateMessage>
+
+externdef __imp_TranslateMessageEx:PPROC
+TranslateMessageEx equ <__imp_TranslateMessageEx>
+
 
 ; Kernel32.lib
 externdef __imp_CreateEventA:PPROC
@@ -89,8 +138,48 @@ GdiReleaseDC equ <__imp_GdiReleaseDC>
 
 
 ; Kernel32.lib
+externdef __imp_CreateProcessA:PPROC
+CreateProcessA equ <__imp_CreateProcessA>
+externdef __imp_CreateProcessW:PPROC
+CreateProcessW equ <__imp_CreateProcessW>
+  IFDEF __UNICODE__
+    CreateProcess equ <__imp_CreateProcessW>
+  ELSE
+    CreateProcess equ <__imp_CreateProcessA>
+  ENDIF
+
+externdef __imp_GetCommandLineA:PPROC
+GetCommandLineA equ <__imp_GetCommandLineA>
+externdef __imp_GetCommandLineW:PPROC
+GetCommandLineW equ <__imp_GetCommandLineW>
+  IFDEF __UNICODE__
+    GetCommandLine equ <__imp_GetCommandLineW>
+  ELSE
+    GetCommandLine equ <__imp_GetCommandLineA>
+  ENDIF
+
+externdef __imp_GetModuleHandleA:PPROC
+GetModuleHandleA equ <__imp_GetModuleHandleA>
 externdef __imp_GetModuleHandleW:PPROC
 GetModuleHandleW equ <__imp_GetModuleHandleW>
+  IFDEF __UNICODE__
+    GetModuleHandle equ <__imp_GetModuleHandleW>
+  ELSE
+    GetModuleHandle equ <__imp_GetModuleHandleA>
+  ENDIF
+
+externdef __imp_GetModuleFileNameA:PPROC
+GetModuleFileNameA equ <__imp_GetModuleFileNameA>
+externdef __imp_GetModuleFileNameW:PPROC
+GetModuleFileNameW equ <__imp_GetModuleFileNameW>
+  IFDEF __UNICODE__
+    GetModuleFileName equ <__imp_GetModuleFileNameW>
+  ELSE
+    GetModuleFileName equ <__imp_GetModuleFileNameA>
+  ENDIF
+
+externdef __imp_GetTickCount:PPROC
+GetTickCount equ <__imp_GetTickCount>
 
 externdef __imp_ExitProcess:PPROC
 ExitProcess equ <__imp_ExitProcess>
@@ -139,3 +228,24 @@ GlobalUnlock equ <__imp_GlobalUnlock>
 
 externdef __imp_MultiByteToWideChar:PPROC
 MultiByteToWideChar equ <__imp_MultiByteToWideChar>
+
+; shlwapi.lib
+externdef __imp_PathRemoveFileSpecA:PPROC
+PathRemoveFileSpecA equ <__imp_PathRemoveFileSpecA>
+externdef __imp_PathRemoveFileSpecW:PPROC
+PathRemoveFileSpecW equ <__imp_PathRemoveFileSpecW>
+  IFDEF __UNICODE__
+    PathRemoveFileSpec equ <__imp_PathRemoveFileSpecW>
+  ELSE
+    PathRemoveFileSpec equ <__imp_PathRemoveFileSpecA>
+  ENDIF
+
+externdef __imp_PathCombineA:PPROC
+PathCombineA equ <__imp_PathCombineA>
+externdef __imp_PathCombineW:PPROC
+PathCombineW equ <__imp_PathCombineW>
+  IFDEF __UNICODE__
+    PathCombine equ <__imp_PathCombineW>
+  ELSE
+    PathCombine equ <__imp_PathCombineA>
+  ENDIF
