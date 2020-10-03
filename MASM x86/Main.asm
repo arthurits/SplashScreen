@@ -13,23 +13,28 @@ __UNICODE__ equ 1
 endif
 
 include C:\masm32\include\windows.inc
-include C:\masm32\include\user32.inc 
-include C:\masm32\include\kernel32.inc 
-include C:\masm32\include\comdlg32.inc
 include C:\masm32\include\masm32.inc
-include C:\masm32\include\msvcrt.inc 
+include C:\masm32\include\comdlg32.inc
+include C:\masm32\include\gdi32.inc
+include C:\masm32\include\gdiplus.inc
+include C:\masm32\include\kernel32.inc
+include C:\masm32\include\Ole32.inc
+include C:\masm32\include\shlwapi.inc	; For PathRemoveFileSpec and PathCombine
+include C:\masm32\include\user32.inc 
+
+include C:\masm32\include\msvcrt.inc
 
 include C:\masm32\macros\macros.asm
 
 includelib C:\masm32\lib\masm32.lib
 
-includelib C:\masm32\lib\user32.lib 
-includelib C:\masm32\lib\kernel32.lib 
 includelib C:\masm32\lib\comdlg32.lib
 includelib C:\masm32\lib\gdi32.lib
-includelib C:\masm32\lib\ole32.lib
 includelib C:\masm32\lib\gdiplus.lib
+includelib C:\masm32\lib\kernel32.lib 
+includelib C:\masm32\lib\ole32.lib
 includelib C:\masm32\lib\shlwapi.lib	; For PathRemoveFileSpec and PathCombine
+includelib C:\masm32\lib\user32.lib 
 
 includelib C:\masm32\lib\msvcrt.lib
 
@@ -37,11 +42,11 @@ include CFile.asm
 include CSplashScreen.asm
 
 ; https://stackoverflow.com/questions/2595550/detecting-architecture-at-compile-time-from-masm-masm64
-IFDEF RAX
-  POINTER TYPEDEF QWORD
-ELSE
-  POINTER TYPEDEF DWORD
-ENDIF
+;IFDEF RAX
+;  POINTER TYPEDEF QWORD
+;ELSE
+;  POINTER TYPEDEF DWORD
+;ENDIF
 
 ;_CloseFile PROTO :DWORD
 ;_OpenFile PROTO
@@ -74,10 +79,10 @@ MAXSIZE equ 260
 MEMSIZE equ 65535
 
 .data 
-;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\ASM x86\Debug\prueba.txt",0
-;UCSTR fileName, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\ASM x86\Debug\prueba2.txt",0
-;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\ASM x86\Debug\settings.txt",0
-	UCSTR fileName, "settings.txt",0
+;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\prueba.txt",0
+;UCSTR fileName, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba2.txt",0
+UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
+	;UCSTR fileName, "settings.txt",0
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
 	ErrorApp BYTE "Could not find the file in the following path:", 13, 10, 0
 

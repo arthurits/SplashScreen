@@ -129,7 +129,7 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 	LOCAL hSplashWnd :HANDLE
 	LOCAL hdcScreen	:HDC
 	
-	sub rsp, 8 * 5	; Shallow space for Win32 API x64-calls
+	sub rsp, 8 * 6	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 
 	mov  rdi, lpTHIS
@@ -210,12 +210,13 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 		mov rbx, hCloseSplashWithoutFadeEvent
 		mov QWORD PTR [rax + 16], rbx
 		
+		mov QWORD PTR [rsp+40], hdcScreen
 		mov QWORD PTR [rsp+32], INFINITE
 		mov QWORD PTR [rsp+24], rax
 		mov QWORD PTR [rsp+16], 3
 		mov QWORD PTR [rsp+8], hSplashWnd
 		mov QWORD PTR [rsp], rdi			; Necessary since Win32 API calls could have modified this shallow space
-		call CSplashScreen_PumpMsgWaitForMultipleObjects	; lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD
+		call CSplashScreen_PumpMsgWaitForMultipleObjects	; lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
 		;add rsp, 40
 
 	exit_Show:
@@ -620,15 +621,15 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	ret
 CSplashScreen_LaunchApplication ENDP
 
-CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses edi lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
+CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
 	LOCAL dwStartTickCount	:DWORD
 	LOCAL dwElapsed			:DWORD
 	LOCAL dwTimeOut			:DWORD
 	LOCAL dwWaitResult		:DWORD
-	;LOCAL hdcScreen		:HDC
+	;LOCAL hdcScreen			:HDC
 	LOCAL msg				:MSG
 
-	sub rsp, 8 * 10	; Shallow space for Win32 API x64-calls
+	sub rsp, 8 * 5	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 	mov rdi, lpTHIS	; Get this pointer
 
@@ -641,107 +642,155 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses edi lpTHIS:QWORD, hwndSpla
 		sub eax, dwStartTickCount
 		mov dwElapsed, eax
 
-		.IF (dwMilliseconds == INFINITE)
+		; If
+		cmp dwMilliseconds, DWORD PTR [INFINITE]	; .IF (dwMilliseconds == INFINITE)
+		jne CSplashScreen_Pump_False_01
 			mov dwTimeOut, INFINITE
-		.ELSE
-			.IF (eax < dwMilliseconds)		; dwElapsed < dwMilliseconds
-				mov eax, dwMilliseconds
-				sub eax, dwElapsed
-				mov dwTimeOut, eax
-				;sub dwTimeOut, dwElapsed
-			.ELSE
-				mov dwTimeOut, 0
-			.ENDIF
-		.ENDIF
+			jmp CSplashScreen_Pump_EndIf_01
+		CSplashScreen_Pump_False_01:				; .ELSE
+			cmp eax, dwMilliseconds						; .IF (eax < dwMilliseconds)		; dwElapsed < dwMilliseconds
+			jae CSplashScreen_Pump_False_02
+					mov eax, dwMilliseconds
+					sub eax, dwElapsed
+					mov dwTimeOut, eax
+					jmp CSplashScreen_Pump_EndIf_02
+			CSplashScreen_Pump_False_02:				;.ELSE
+					mov dwTimeOut, 0
+			CSplashScreen_Pump_EndIf_02:				; EndIf
+		CSplashScreen_Pump_EndIf_01:				; EndIf
 
 		; Wait for a handle to be signaled or a message
-		invoke MsgWaitForMultipleObjects, nCount, pHandles, FALSE, dwTimeOut, QS_ALLINPUT
+		mov QWORD PTR [rsp], QS_ALLINPUT	; 0FFh
+		mov r9, dwTimeOut
+		mov r8, FALSE
+		mov rdx, pHandles
+		mov rcx, nCount
+		call MsgWaitForMultipleObjects		; invoke MsgWaitForMultipleObjects, nCount, pHandles, FALSE, dwTimeOut, QS_ALLINPUT
 		mov dwWaitResult, eax
 		mov eax, WAIT_OBJECT_0
 		add eax, nCount
-		.IF ( dwWaitResult == eax )		; dwWaitResult == WAIT_OBJECT_0 + nCount
+
+		; If 03
+		cmp dwWaitResult, eax				; .IF ( dwWaitResult == eax )		; dwWaitResult == WAIT_OBJECT_0 + nCount
+		jne CSplashScreen_Pump_False_03
 
 			jmp While_Peek_Condition	; While PeekMessage != FALSE
 
 			While_Peek_Start:
-				.IF (msg.message == WM_QUIT)
+				; If 04
+				cmp msg.message, WM_QUIT	; .IF (msg.message == WM_QUIT)
+				jne CSplashScreen_Pump_EndIf_04
 					; Repost quit message and return
-					invoke PostQuitMessage, msg.wParam
+					mov rcx, msg.wParam
+					call PostQuitMessage	; invoke PostQuitMessage, msg.wParam
 					;return WAIT_OBJECT_0 + nCount;
 					jmp exit_PumpMsgWaitForMultipleObjects
-				.ENDIF
+				CSplashScreen_Pump_EndIf_04:	; EndIf 04
 				; Dispatch thread message
-				invoke TranslateMessage, ADDR msg
-				invoke DispatchMessage, ADDR msg
+				mov rcx, ADDR msg
+				call TranslateMessage	; invoke TranslateMessage, ADDR msg
+				mov rcx, ADDR msg
+				call DispatchMessage	; invoke DispatchMessage, ADDR msg
 
 			While_Peek_Condition:
-				invoke PeekMessage, ADDR msg, NULL, 0, 0, PM_REMOVE
-				cmp eax, FALSE
+				mov QWORD PTR [rsp], PM_REMOVE
+				mov r9, 0
+				mov r8, 0
+				mov rdx, NULL
+				mov rcx, ADDR msg
+				call PeekMessage	; invoke PeekMessage, ADDR msg, NULL, 0, 0, PM_REMOVE
+				cmp rax, FALSE
 				jne While_Peek_Start	; execute while eax != FALSE
 
-		.ELSE
+		CSplashScreen_Pump_False_03:		; .ELSE
 			; Check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
 			; if the fade event is set then we need to fade out
-			mov ebx, pHandles	; Pointer to the beginning of the array
-			add ebx, 4			; Point to the second element: pHandles[1]
-			invoke MsgWaitForMultipleObjects, 1, ebx, FALSE, 0, QS_ALLINPUT
-			.IF (eax == WAIT_OBJECT_0)
-
+			mov QWORD PTR [rsp], QS_ALLINPUT
+			mov r9, 0
+			mov r8, FALSE
+			mov rdx, pHandles	; Pointer to the beginning of the array
+			add rdx, 8			; Point to the second element: pHandles[1]
+			mov rcx, 1			
+			call MsgWaitForMultipleObjects	; invoke MsgWaitForMultipleObjects, 1, &pHandles[1], FALSE, 0, QS_ALLINPUT
+			mov dwWaitResult, rax
+			
+			; If 05
+			cmp rax, WAIT_OBJECT_0				; .IF (eax == WAIT_OBJECT_0)
+			jne CSplashScreen_Pump_EndIf_05
 				; Timeout on actual wait or any other object
-				invoke SetTimer, hwndSplash, 1, 30, NULL
-				invoke GetTickCount
-				add eax, [edi].intFadeOutTime
-				mov [edi].intFadeOutEnd, eax
+				mov r8, NULL
+				mov rdx, 30
+				mov rcx, 1
+				call SetTimer		; invoke SetTimer, hwndSplash, 1, 30, NULL
+				call GetTickCount	; invoke GetTickCount
+				add eax, (CSplashScreen PTR [rdi]).intFadeOutTime
+				mov (CSplashScreen PTR [rdi]).intFadeOutEnd, eax
 
 				jmp FadeWindow_Condition
 
 				FadeWindow_Start:
-					.IF (eax == -1)
+					; If 06
+					cmp eax, -1							; .IF (eax == -1)
+						jne CSplashScreen_Pump_False_06
 						; Handle the error and possibly exit
-					.ELSE
-						.IF (msg.message == WM_TIMER)
-							push hdcScreen
-							push hwndSplash
-							push edi
-							call CSplashScreen_FadeWindowOut
-							cmp eax, 1
-							je exit_PumpMsgWaitForMultipleObjects
-						.ENDIF
+					CSplashScreen_Pump_False_06:		; .ELSE
+						; If 07
+						cmp msg.message, WM_TIMER			; .IF (msg.message == WM_TIMER)
+						jne CSplashScreen_Pump_EndIf_07
+							mov r8, hdcScreen			; hdcScreen
+							mov rdx, hwndSplash
+							mov rcx, rdi
+							call CSplashScreen_FadeWindowOut	; FadeWindowOut(hWnd, hdcScreen)
+							cmp rax, 1
+							je CSplashScreen_Pump_EndIf_05
+						CSplashScreen_Pump_EndIf_07:		; .ENDIF
 						; Dispatch thread message
-						invoke TranslateMessage, ADDR msg
-						invoke DispatchMessage, ADDR msg
-					.ENDIF
+						mov rcx, ADDR msg
+						call TranslateMessage	; invoke TranslateMessage, ADDR msg
+						mov rcx, ADDR msg
+						call DispatchMessage	; invoke DispatchMessage, ADDR msg
+					CSplashScreen_Pump_EndIf_06:		; .ENDIF
+				
 				FadeWindow_Condition:
-					invoke GetMessage, ADDR msg, hwndSplash, 0, 0
-					cmp eax, FALSE
-					jne FadeWindow_Start
-			.ENDIF
+					mov r9, 0
+					mov r8, 0
+					mov rdx, hwndSplash
+					mov rcx, ADDR msg
+					call GetMessage	; invoke GetMessage, ADDR msg, hwndSplash, 0, 0
+					cmp rax, FALSE
+					jne FadeWindow_Start	; execute while eax != FALSE
+			CSplashScreen_Pump_EndIf_05:
+
+				mov rax, dwWaitResult	; We return the results from MsgWaitForMultipleObjects
 
 			jmp exit_PumpMsgWaitForMultipleObjects
 
-		.ENDIF
+		CSplashScreen_Pump_EndIf_03:
+
 	jmp Wait_Loop
 
 	exit_PumpMsgWaitForMultipleObjects:
 
-	assume edi:nothing
 	ret
 CSplashScreen_PumpMsgWaitForMultipleObjects ENDP
 
-CSplashScreen_FadeWindowOut PROC uses edi lpTHIS:DWORD, hWindow:HWND, hdcScreen:HDC
+CSplashScreen_FadeWindowOut PROC uses rdi lpTHIS:QWORD, hWindow:HWND, hdcScreen:HDC
 	LOCAL dtNow:DWORD
 	LOCAL cte:DWORD
 	LOCAL result:DWORD
 	
-	mov  edi, lpTHIS
-	assume edi:PTR CSplashScreen
+	sub rsp, 8 * 9	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	mov rdi, lpTHIS	; Get this pointer
 
-	invoke GetTickCount
+	call GetTickCount		; invoke GetTickCount
 	mov dtNow, eax
 
-	.IF (eax >= [edi].intFadeOutEnd)
-		mov eax, 1		; Return true (we are done with the fade out)
-	.ELSE
+	cmp eax, (CSplashScreen PTR [rdi]).intFadeOutEnd	; .IF (eax >= [edi].intFadeOutEnd)
+	jne CSplashScreen_FadeWindowOut_False_01
+		mov rax, 1		; Return true (we are done with the fade out)
+		jmp CSplashScreen_FadeWindowOut_EndIf_01
+	CSplashScreen_FadeWindowOut_False_01:
 		; Floating point computation of the blend parameter
 		;mov cte, 255
 		;fild [edi].intFadeOutEnd
@@ -758,12 +807,12 @@ CSplashScreen_FadeWindowOut PROC uses edi lpTHIS:DWORD, hWindow:HWND, hdcScreen:
 		; double fade = ((double)m_nFadeoutEnd - (double)dtNow) / (double)m_nFadeoutTime;
 		xorps xmm0, xmm0	; 128-bit wide registers
 		xorps xmm1, xmm1
-		mov eax, [edi].intFadeOutEnd
+		mov eax, (CSplashScreen PTR [rdi]).intFadeOutEnd
 		cvtsi2sd xmm0, eax
 		mov eax, dtNow
 		cvtsi2sd xmm1, eax
 		subsd xmm0, xmm1
-		mov eax, [edi].intFadeOutTime  
+		mov eax, (CSplashScreen PTR [rdi]).intFadeOutTime  
 		cvtsi2sd xmm1, eax  
 		divsd xmm0, xmm1
 		
@@ -771,15 +820,23 @@ CSplashScreen_FadeWindowOut PROC uses edi lpTHIS:DWORD, hWindow:HWND, hdcScreen:
 		cvtsi2sd xmm1, eax
 		;movsd xmm1, mmword ptr[255]
 		mulsd xmm0, xmm1  
-		cvttsd2si eax, xmm0  
+		cvttsd2si rax, xmm0  
 
-		mov [edi].blend.SourceConstantAlpha, al	; BYTE PTR [eax]
-		lea eax, [edi].blend
-		invoke UpdateLayeredWindow, hWindow, hdcScreen, NULL, NULL, NULL, NULL, 000000000h, eax, ULW_ALPHA
-		mov eax, 0		; Return false (we are still fading out the window)
-	.ENDIF
+		mov (CSplashScreen PTR [rdi]).blend.SourceConstantAlpha, al	; BYTE PTR [eax]
 
-	assume edi:nothing
+		mov QWORD PTR [rsp+32], ULW_ALPHA
+		lea QWORD PTR [rsp+24], (CSplashScreen PTR [rdi]).blend
+		mov QWORD PTR [rsp+16], 000000000h
+		mov QWORD PTR [rsp+8], NULL
+		mov QWORD PTR [rsp], NULL
+		mov r9, NULL
+		mov r8, NULL
+		mov rdx, hdcScreen
+		mov rcx, hWindow
+		call UpdateLayeredWindow		; invoke UpdateLayeredWindow, hWindow, hdcScreen, NULL, NULL, NULL, NULL, 000000000h, eax, ULW_ALPHA
+		mov rax, 0		; Return false (we are still fading out the window)
+	CSplashScreen_FadeWindowOut_EndIf_01:
+
 	ret
 CSplashScreen_FadeWindowOut ENDP
 
@@ -787,41 +844,49 @@ CSplashScreen_FadeWindowOut ENDP
 
 
 
-CenterWindow proc hWindow:DWORD
+CenterWindow proc hWindow:QWORD
 	LOCAL DlgHeight:DWORD 
 	LOCAL DlgWidth:DWORD
 	LOCAL DlgRect:RECT
 	LOCAL DesktopRect:RECT
 	
-	invoke GetWindowRect,hWindow,addr DlgRect 
-	invoke GetDesktopWindow 
-	mov ecx,eax 
-	invoke GetWindowRect,ecx,addr DesktopRect 
-	push  0 
-	mov  eax,DlgRect.bottom 
-	sub  eax,DlgRect.top 
+	sub rsp, 8 * 6	; Shallow space for Win32 API x64-calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	;mov rdi, lpTHIS	; Get this pointer
+
+	mov rdx, ADDR DlgRect
+	mov rcx, hWindow
+	call GetWindowRect		; invoke GetWindowRect,hWindow,addr DlgRect 
+	call GetDesktopWindow	; invoke GetDesktopWindow 
+	mov rdx, ADDR DesktopRect
+	mov rcx, rax 
+	call GetWindowRect	; invoke GetWindowRect,ecx,addr DesktopRect 
+	
+	mov QWORD PTR [rsp+8], 0		; 6th parameter
+	mov  eax, DlgRect.bottom 
+	sub  eax, DlgRect.top 
 	mov  DlgHeight,eax 
-	push eax 
-	mov  eax,DlgRect.right 
-	sub  eax,DlgRect.left 
+	mov QWORD PTR [rsp], rax		; 5th parameter
+	mov  eax, DlgRect.right 
+	sub  eax, DlgRect.left 
 	mov  DlgWidth,eax 
-	push eax 
-	mov  eax,DesktopRect.bottom 
-	sub  eax,DlgHeight 
-	shr  eax,1 
-	push eax 
-	mov  eax,DesktopRect.right 
-	sub  eax,DlgWidth 
-	shr  eax,1 
-	push eax 
-	push hWindow 
+	mov r9, rax						; 4th parameter
+	mov  eax, DesktopRect.bottom 
+	sub  eax, DlgHeight 
+	shr  eax, 1 
+	mov r8, rax						; 3rd parameter
+	mov  eax, DesktopRect.right 
+	sub  eax, DlgWidth 
+	shr  eax, 1 
+	mov rdx, rax					; 2nd parameter
+	mov rcx, hWindow				; 1st parameter
 	call MoveWindow
 	ret
 CenterWindow endp
 
 
 WindowProc  PROC ;, hwnd:HWND, uMsg:UINT, wParam:WPARAM, lParam:LPARAM   ; must be naked
-uMsg    textequ < DWORD PTR [esp + 8] >
+uMsg    textequ < QWORD PTR [rsp + 8] >
     cmp     uMsg, WM_DESTROY
     je      OnDestroy
     cmp     uMsg, WM_PAINT
@@ -833,7 +898,7 @@ WindowProc  ENDP
 
 OnDestroy   PROC ;, hwnd:HWND, uMsg:UINT, wParam:WPARAM, lParam:LPARAM
     invoke  PostQuitMessage, 0
-    xor     eax, eax
+    xor     rax, rax
     ret
 OnDestroy   ENDP
 
@@ -843,7 +908,7 @@ OnPaint     PROC ;, hwnd:HWND, uMsg:UINT, wParam:WPARAM, lParam:LPARAM
     ;invoke  FillRect, ps.hdc, addr ps.rcPaint, COLOR_WINDOW + 1
     ;invoke  EndPaint, hwnd, addr ps
 
-    xor     eax, eax
+    xor     rax, rax
     ret
 OnPaint	ENDP
 

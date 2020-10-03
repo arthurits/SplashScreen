@@ -5,14 +5,14 @@ endif
 ifndef _CSplashScreen_
 _CSplashScreen_ equ 1
 
-include C:\masm32\include\windows.inc
-include C:\masm32\include\kernel32.inc
-include C:\masm32\include\Ole32.inc
-include C:\masm32\include\gdi32.inc
-include C:\masm32\include\gdiplus.inc
-include C:\masm32\include\user32.inc
-include C:\masm32\include\shlwapi.inc	; For PathRemoveFileSpec and PathCombine
-include C:\masm32\include\comdlg32.inc
+;include C:\masm32\include\windows.inc
+;include C:\masm32\include\kernel32.inc
+;include C:\masm32\include\Ole32.inc
+;include C:\masm32\include\gdi32.inc
+;include C:\masm32\include\gdiplus.inc
+;include C:\masm32\include\user32.inc
+;include C:\masm32\include\shlwapi.inc	; For PathRemoveFileSpec and PathCombine
+;include C:\masm32\include\comdlg32.inc
 
 ;WindowProc      proto CALLBACK
 m_nSplashWidth equ 800
@@ -197,7 +197,7 @@ CSplashScreen_Show PROC uses edi lpTHIS:DWORD
 		mov ebx, hCloseSplashWithoutFadeEvent
 		mov DWORD PTR [eax + 8], ebx
 		
-
+		push hdcScreen
 		push INFINITE
 		push eax
 		push 3

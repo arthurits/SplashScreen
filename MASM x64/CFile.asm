@@ -58,14 +58,13 @@ _CFile_ equ 1
 	OpenFile		QWORD	?
 	CloseFile		QWORD	?
 	Dispose			QWORD	?
-	ConvertToLine	QWORD	?
+	ConvertToLine		QWORD	?
 	GetLine			QWORD	?
-	EndOfFile		WORD	?
 	handle			QWORD	?
 	ptrHeapText		QWORD	?
 	ptrLine			QWORD	?
 	bytesRead		QWORD	?
-
+	EndOfFile		WORD	?
    CFile ENDS
 
    ;CFile_initsize equ sizeof CFile
@@ -79,12 +78,12 @@ _CFile_ equ 1
 	  QWORD OFFSET CFile_Dispose
 	  QWORD OFFSET CFile_ConvertToLine
 	  QWORD OFFSET CFile_GetLine
-	  WORD	0
 	  QWORD	0, 0, 0, 0
+	  WORD	0
    CFile_initend equ $-CFile_initdata
 
-;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\ASM x86\Debug\prueba.txt",0
-;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\ASM x86\Debug\prueba2.txt",0
+;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba.txt",0
+;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba2.txt",0
 fileSize2 LARGE_INTEGER <>
 
 .const 
@@ -125,15 +124,15 @@ CFile_Init ENDP
 ; --=====================================================================================--
 ; destructor METHOD BEHAVIOR
 ; --=====================================================================================--
-CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD 
+CFile_Destructor PROC uses rdi lpTHIS:QWORD 
 	; Stack alignment
-	sub rsp, 8 * 4	; Shallow space for Win64 calls
+	sub rsp, 8*4	; Shallow space for Win64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
 	;mov r15, rbp
 	;sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
 	
 	mov  rdi, lpTHIS
-
+	; http://masm32.com/board/index.php?topic=7210.0
 	mov rcx, (CFile ptr[rdi]).handle
 	cmp rcx, NULL
 	je next01
@@ -151,7 +150,7 @@ CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD
 CFile_Destructor ENDP
 
 ;--------------------------------------------------------
-CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
+CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be

@@ -9,7 +9,7 @@ ifndef __UNICODE__
 __UNICODE__ equ 1
 endif
 
-include invoke_macros.asm
+;include invoke_macros.asm
 ;include C:\masm32\include64\masm64rt.inc
 include VariableDefinitions.asm
 include FunctionProtos.asm

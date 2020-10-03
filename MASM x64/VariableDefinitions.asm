@@ -1,4 +1,10 @@
 
+IFDEF WIN32
+   STRUCT_ALIGN   equ 4
+ELSE
+   STRUCT_ALIGN   equ 8
+ENDIF
+
 ; ************************** win64 equates ********************************
 TRUE	equ	1
 FALSE	equ	0
@@ -84,6 +90,7 @@ HMONITOR TYPEDEF QWORD
 HICON   TYPEDEF QWORD
 LPHANDLE    TYPEDEF QWORD
 LPVOID  TYPEDEF QWORD
+PVOID   TYPEDEF QWORD
 LPSTR   typedef QWORD
 LPCSTR	typedef	QWORD
 LPCWSTR	typedef	QWORD
@@ -131,17 +138,10 @@ POINT STRUCT
     y  LONG ?
 POINT ENDS
 
-SIZE STRUCT
-  cx    LONG   ?
-  cy    LONG   ?
-SIZE ENDS
-
-MONITORINFO struct
-  cbSize    DWORD   ?
-  rcMonitor RECT    ?
-  rcWork    RECT    ?
-  dwFlags   DWORD   ?
-MONITORINFO ENDS
+_SIZE STRUCT
+  x    LONG   ?
+  y    LONG   ?
+_SIZE ENDS
 
 RECT STRUCT
     left    LONG ?
@@ -150,8 +150,15 @@ RECT STRUCT
     bottom  LONG ?
 RECT ENDS
 
-MSG STRUCT STRUCT_ALIGN
-   hwnd     HWND ?
+MONITORINFO struct
+  cbSize    DWORD   ?
+  rcMonitor RECT    <>
+  rcWork    RECT    <>
+  dwFlags   DWORD   ?
+MONITORINFO ENDS
+
+MSG STRUCT QWORD
+   nHwnd     HWND ?
    message  DWORD ?
    wParam   WPARAM ?
    lParam   LPARAM ?

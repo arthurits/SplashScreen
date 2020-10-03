@@ -7,14 +7,14 @@ ifndef _CFile_
 _CFile_ equ 1
 
 
-include C:\masm32\include\windows.inc
-include C:\masm32\include\user32.inc 
-include C:\masm32\include\kernel32.inc 
-include C:\masm32\include\comdlg32.inc
-include C:\masm32\include\masm32.inc
-include C:\masm32\include\msvcrt.inc 
+;include C:\masm32\include\windows.inc
+;include C:\masm32\include\user32.inc 
+;include C:\masm32\include\kernel32.inc 
+;include C:\masm32\include\comdlg32.inc
+;include C:\masm32\include\masm32.inc
+;include C:\masm32\include\msvcrt.inc 
 
-include C:\masm32\macros\macros.asm
+;include C:\masm32\macros\macros.asm
 
 ;includelib C:\masm32\lib\masm32.lib
 

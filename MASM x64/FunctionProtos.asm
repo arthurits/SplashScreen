@@ -32,6 +32,12 @@ DispatchMessageW equ <__imp_DispatchMessageW>
     DispatchMessage equ <__imp_DispatchMessageA>
   ENDIF
 
+externdef __imp_GetDesktopWindow:PPROC
+GetDesktopWindow equ <__imp_GetDesktopWindow>
+
+externdef __imp_GetWindowRect:PPROC
+GetWindowRect equ <__imp_GetWindowRect>
+
 externdef __imp_GetMessageA:PPROC
 GetMessageA equ <__imp_GetMessageA>
 externdef __imp_GetMessageW:PPROC
@@ -87,6 +93,12 @@ SetTimer equ <__imp_SetTimer>
 externdef __imp_SetWindowPos:PPROC
 SetWindowPos equ <__imp_SetWindowPos>
 
+externdef __imp_TranslateMessage:PPROC
+TranslateMessage equ <__imp_TranslateMessage>
+
+externdef __imp_TranslateMessageEx:PPROC
+TranslateMessageEx equ <__imp_TranslateMessageEx>
+
 externdef __imp_UnregisterClassA:PPROC
 UnregisterClassA equ <__imp_UnregisterClassA>
 externdef __imp_UnregisterClassW:PPROC
@@ -97,11 +109,8 @@ UnregisterClassW equ <__imp_UnregisterClassW>
     UnregisterClass equ <__imp_UnregisterClassA>
   ENDIF
 
-externdef __imp_TranslateMessage:PPROC
-TranslateMessage equ <__imp_TranslateMessage>
-
-externdef __imp_TranslateMessageEx:PPROC
-TranslateMessageEx equ <__imp_TranslateMessageEx>
+externdef __imp_UpdateLayeredWindow:PPROC
+UpdateLayeredWindow equ <__imp_UpdateLayeredWindow>
 
 
 ; Kernel32.lib
