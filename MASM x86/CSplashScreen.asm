@@ -160,10 +160,6 @@ CSplashScreen_Show PROC uses edi lpTHIS:DWORD
 		jmp	exit_Show
 	.ENDIF
 
-	; Graphic display operations
-	invoke GetDC, NULL
-	mov hdcScreen, eax
-
 	; Create the bitmap (from file or default) that will be shown in the splash window
 	push edi
 	call CSplashScreen_CreateBitmapImage
@@ -190,6 +186,10 @@ CSplashScreen_Show PROC uses edi lpTHIS:DWORD
 		invoke GetProcessId, eax
 		invoke AllowSetForegroundWindow, eax
 		
+		; Graphic display operations
+		invoke GetDC, NULL
+		mov hdcScreen, eax
+
 		lea eax, aHandles 
 		mov DWORD PTR [eax + 0], ebx
 		mov ebx, hCloseSplashEvent

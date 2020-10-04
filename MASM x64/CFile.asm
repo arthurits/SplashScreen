@@ -60,11 +60,12 @@ _CFile_ equ 1
 	Dispose			QWORD	?
 	ConvertToLine		QWORD	?
 	GetLine			QWORD	?
-	handle			QWORD	?
+	hFile			QWORD	?
 	ptrHeapText		QWORD	?
 	ptrLine			QWORD	?
 	bytesRead		QWORD	?
 	EndOfFile		WORD	?
+	
    CFile ENDS
 
    ;CFile_initsize equ sizeof CFile
@@ -80,6 +81,7 @@ _CFile_ equ 1
 	  QWORD OFFSET CFile_GetLine
 	  QWORD	0, 0, 0, 0
 	  WORD	0
+	  
    CFile_initend equ $-CFile_initdata
 
 ;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba.txt",0
@@ -131,9 +133,9 @@ CFile_Destructor PROC uses rdi lpTHIS:QWORD
 	;mov r15, rbp
 	;sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
 	
-	mov  rdi, lpTHIS
+	mov rdi, lpTHIS
 	; http://masm32.com/board/index.php?topic=7210.0
-	mov rcx, (CFile ptr[rdi]).handle
+	mov rcx, (CFile ptr[rdi]).hFile
 	cmp rcx, NULL
 	je next01
 	call CloseHandle
@@ -185,7 +187,7 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 	call CreateFile
 	;invoke CreateFile, lpszFileName, GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE, NULL 
 	;mov edx, eax
-	mov (CFile ptr[rdi]).handle, rax
+	mov (CFile ptr[rdi]).hFile, rax
 
 	mov rdx, offset fileSize2
 	mov rcx, rax
@@ -209,15 +211,15 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 	lea r9, SizeReadWrite2
 	mov r8d, fileSize2.LowPart
 	mov rdx, rax
-	mov rcx, (CFile ptr[rdi]).handle
+	mov rcx, (CFile ptr[rdi]).hFile
 	call ReadFile
 	;invoke ReadFile, [edi].handle, lpGLOBAL, fileSize2.LowPart, ADDR SizeReadWrite2, NULL
 	;mov DWORD PTR [ebp-8], eax
-	mov rcx, (CFile ptr[rdi]).handle
+	mov rcx, (CFile ptr[rdi]).hFile
 	call CloseHandle
 	cmp rax, 0
 	jne end_if
-		mov (CFile ptr[rdi]).handle, 0
+		mov (CFile ptr[rdi]).hFile, 0
 	end_if:
 
 

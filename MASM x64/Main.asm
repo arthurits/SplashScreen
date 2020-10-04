@@ -14,6 +14,7 @@ endif
 include VariableDefinitions.asm
 include FunctionProtos.asm
 include CFile.asm
+include CSplashScreen.asm
 
 .data
 	;fileName  WORD "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
