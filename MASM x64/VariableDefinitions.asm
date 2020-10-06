@@ -56,6 +56,19 @@ WS_VISIBLE          equ 10000000h
 SWP_SHOWWINDOW      equ 40h
 HWND_TOPMOST        equ -1
 
+; Gdiplus
+PixelFormat32bppARGB    EQU 26200Ah
+
+; Messages
+WM_DESTROY      equ 2h
+WM_PAINT        equ 0Fh
+WM_TIMER        equ 113h
+WM_QUIT         equ 12h
+STATUS_WAIT_0   equ 00000000h
+WAIT_OBJECT_0   equ STATUS_WAIT_0
+QS_ALLINPUT     equ 0x04FF
+PM_REMOVE       equ 1h
+
 ; ************************** win64 types ********************************
 IFDEF __UNICODE__
     TCHAR                       typedef WORD
@@ -87,7 +100,7 @@ HBITMAP  TYPEDEF QWORD
 HBRUSH  TYPEDEF QWORD
 ;HCURSOR TYPEDEF QWORD
 HMONITOR TYPEDEF QWORD
-;HICON   TYPEDEF QWORD
+HICON   TYPEDEF QWORD
 LPHANDLE    TYPEDEF QWORD
 LPVOID  TYPEDEF QWORD
 PVOID   TYPEDEF QWORD
@@ -178,7 +191,7 @@ WNDCLASSEX STRUCT
   hbrBackground     HBRUSH ?
   lpszMenuName      LPSTR ?
   lpszClassName     LPSTR ?
-  hIconSm           QWORD ?
+  hIconSm           HICON ?
 WNDCLASSEX ENDS
 
 STARTUPINFO STRUCT

@@ -1,4 +1,7 @@
 ; user32.lib
+externdef __imp_AllowSetForegroundWindow:PPROC
+AllowSetForegroundWindow equ <__imp_AllowSetForegroundWindow>
+
 externdef __imp_GetDC:PPROC
 GetDC equ <__imp_GetDC>
 
@@ -21,6 +24,9 @@ DefWindowProcW equ <__imp_DefWindowProcW>
   ELSE
     DefWindowProc equ <__imp_DefWindowProcA>
   ENDIF
+
+externdef __imp_DestroyWindow:PPROC
+DestroyWindow equ <__imp_DestroyWindow>
 
 externdef __imp_DispatchMessageA:PPROC
 DispatchMessageA equ <__imp_DispatchMessageA>
@@ -58,6 +64,12 @@ MessageBoxW equ <__imp_MessageBoxW>
     MessageBox equ <__imp_MessageBoxA>
   ENDIF
 
+externdef __imp_MonitorFromPoint:PPROC
+MonitorFromPoint equ <__imp_MonitorFromPoint>
+
+externdef __imp_MoveWindow:PPROC
+MoveWindow equ <__imp_MoveWindow>
+
 externdef __imp_MsgWaitForMultipleObjects:PPROC
 MsgWaitForMultipleObjects equ <__imp_MsgWaitForMultipleObjects>
 
@@ -86,6 +98,9 @@ RegisterClassExW equ <__imp_RegisterClassExW>
   ELSE
     RegisterClassEx equ <__imp_RegisterClassExA>
   ENDIF
+
+externdef __imp_ReleaseDC:PPROC
+ReleaseDC equ <__imp_ReleaseDC>
 
 externdef __imp_SetTimer:PPROC
 SetTimer equ <__imp_SetTimer>
@@ -126,8 +141,14 @@ CreateEventW equ <__imp_CreateEventW>
 externdef __imp_GetLastError:PPROC
 GetLastError equ <__imp_GetLastError>
 
+externdef __imp_GetProcessId:PPROC
+GetProcessId equ <__imp_GetProcessId>
+
 externdef __imp_SetLastError:PPROC
 SetLastError equ <__imp_SetLastError>
+
+externdef __imp_SetProcessId:PPROC
+SetProcessId equ <__imp_SetProcessId>
 
 
 ; Ole32.lib
@@ -139,12 +160,65 @@ CoUninitialize equ <__imp_CoUninitialize>
 
 
 ; gdi32.lib
+externdef __imp_CreateCompatibleDC:PPROC
+CreateCompatibleDC equ <__imp_CreateCompatibleDC>
+
+externdef __imp_DeleteDC:PPROC
+DeleteDC equ <__imp_DeleteDC>
+
 externdef __imp_DeleteObject:PPROC
 DeleteObject equ <__imp_DeleteObject>
 
 externdef __imp_GdiReleaseDC:PPROC
 GdiReleaseDC equ <__imp_GdiReleaseDC>
 
+externdef __imp_GetMonitorInfoA:PPROC
+GetMonitorInfoA equ <__imp_GetMonitorInfoA>
+externdef __imp_GetMonitorInfoW:PPROC
+GetMonitorInfoW equ <__imp_GetMonitorInfoW>
+  IFDEF __UNICODE__
+    GetMonitorInfo equ <__imp_GetMonitorInfoW>
+  ELSE
+    GetMonitorInfo equ <__imp_GetMonitorInfoA>
+  ENDIF
+
+externdef __imp_GetObject:PPROC
+GetObject equ <__imp_GetObject>
+
+externdef __imp_SelectObject:PPROC
+SelectObject equ <__imp_SelectObject>
+
+; gdiplus.lib
+
+externdef __imp_GdipCreateBitmapFromFile:PPROC
+GdipCreateBitmapFromFile equ <__imp_GdipCreateBitmapFromFile>
+
+externdef __imp_GdipCreateBitmapFromScan0:PPROC
+GdipCreateBitmapFromScan0 equ <__imp_GdipCreateBitmapFromScan0>
+
+externdef __imp_GdipCreateHBITMAPFromBitmap:PPROC
+GdipCreateHBITMAPFromBitmap equ <__imp_GdipCreateHBITMAPFromBitmap>
+
+externdef __imp_GdipFillRectangleI:PPROC
+GdipFillRectangleI equ <__imp_GdipFillRectangleI>
+
+externdef __imp_GdipFree:PPROC
+GdipFree equ <__imp_GdipFree>
+
+externdef __imp_GdipCreateSolidFill:PPROC
+GdipCreateSolidFill equ <__imp_GdipCreateSolidFill>
+
+externdef __imp_GdipDisposeImage:PPROC
+GdipDisposeImage equ <__imp_GdipDisposeImage>
+
+externdef __imp_GdipGetImageGraphicsContext:PPROC
+GdipGetImageGraphicsContext equ <__imp_GdipGetImageGraphicsContext>
+
+externdef __imp_GdiplusShutdown:PPROC
+GdiplusShutdown equ <__imp_GdiplusShutdown>
+
+externdef __imp_GdiplusStartup:PPROC
+GdiplusStartup equ <__imp_GdiplusStartup>
 
 ; Kernel32.lib
 externdef __imp_CreateProcessA:PPROC
