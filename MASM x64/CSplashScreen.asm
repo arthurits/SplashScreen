@@ -480,7 +480,7 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	
 	; Get the primary monitor's info
 	mov r8, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
-	mov rdx, ptZero.y
+	mov rdx, ptZero.y	; https://stackoverflow.com/questions/22621340/why-cant-i-move-directly-a-byte-to-a-64-bit-register
 	mov rcx, ptZero.x
 	call MonitorFromPoint	; invoke MonitorFromPoint, ptZero.x, ptZero.y, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
 	mov hmonPrimary, rax
