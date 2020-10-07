@@ -202,7 +202,7 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 	mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT
 	call GlobalAlloc
 	;invoke GlobalAlloc, GMEM_MOVEABLE or GMEM_ZEROINIT, eax
-	mov HGLOBAL, rax
+	mov hGLOBAL, rax
 	mov rcx, rax
 	call GlobalLock
 	mov lpGLOBAL, rax

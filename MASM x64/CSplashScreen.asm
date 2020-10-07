@@ -266,11 +266,11 @@ CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
 	;LOCAL hGdiImage :DWORD
 	;LOCAL wbuffer :DWORD
 	LOCAL hBmp :QWORD
-	LOCAL image :BITMAP
+	;LOCAL image :BITMAP
 	LOCAL GpBitmap :QWORD		; Pointer to GpBitmap
 	LOCAL GpGraphics :QWORD		; Pointer to GpGraphics
 	LOCAL GpSolidFill :QWORD	; Pointer to GpSolidFill
-	LOCAL lpImage	:QWORD
+	;LOCAL lpImage	:QWORD
 
 	;mov hGdiImage, 0
 	mov hBmp, 0
@@ -480,8 +480,8 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	
 	; Get the primary monitor's info
 	mov r8, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
-	mov rdx, ptZero.y	; https://stackoverflow.com/questions/22621340/why-cant-i-move-directly-a-byte-to-a-64-bit-register
-	mov rcx, ptZero.x
+	mov edx, ptZero.y	; https://stackoverflow.com/questions/22621340/why-cant-i-move-directly-a-byte-to-a-64-bit-register
+	mov ecx, ptZero.x
 	call MonitorFromPoint	; invoke MonitorFromPoint, ptZero.x, ptZero.y, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
 	mov hmonPrimary, rax
 	mov rax, SIZEOF monInfo
@@ -526,12 +526,15 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 
 	; Paint the window (in the right location) with the alpha-blended bitmap
 	mov QWORD PTR [rsp+32], ULW_ALPHA
-	mov QWORD PTR [rsp+24], QWORD PTR [blend]
+	lea r9, blend
+	mov QWORD PTR [rsp+24], r9
 	mov QWORD PTR [rsp+16], 000000000h
-	mov QWORD PTR [rsp+8], QWORD PTR [ptZero]
-	mov QWORD PTR [rsp], QWORD PTR [hdcMem]
-	mov r9, QWORD PTR [sizeSplash]
-	mov r8, QWORD PTR [ptOrigin]
+	lea r9, ptZero
+	mov QWORD PTR [rsp+8], r9
+	lea r9, hdcMem
+	mov QWORD PTR [rsp], r9
+	lea r9, sizeSplash
+	lea r8, ptOrigin
 	mov rdx, hdcScreen
 	mov rcx, hwndSplash
 	call UpdateLayeredWindow	; invoke UpdateLayeredWindow, hwndSplash, hdcScreen, ADDR ptOrigin, ADDR sizeSplash, hdcMem, ADDR ptZero, 000000000h, ADDR blend, ULW_ALPHA
@@ -548,10 +551,12 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 
 	; Center the window
 	mov QWORD PTR [rsp+16], SWP_SHOWWINDOW	; window-positioning options (0x0040);
-	mov DWORD PTR [rsp+8], [sizeSplash.y]		; height
-	mov DWORD PTR [rsp], [sizeSplash.x]		; width
-	mov r9, ptOrigin.y						; vertical position
-	mov r8, ptOrigin.x						; horizontal position
+	mov r9d, sizeSplash.y
+	mov DWORD PTR [rsp+8], r9d				; height
+	mov r9d, sizeSplash.x
+	mov DWORD PTR [rsp], r9d				; width
+	mov r9d, ptOrigin.y						; vertical position
+	mov r8d, ptOrigin.x						; horizontal position
 	mov rdx, HWND_TOPMOST					; placement-order handle ((HWND)-1)
 	mov rcx, hwndSplash						; handle to window
 	call SetWindowPos		; invoke SetWindowPos, hwndSplash, HWND_TOPMOST, ptOrigin.x, ptOrigin.y, sizeSplash.x, sizeSplash.y, SWP_SHOWWINDOW
@@ -582,10 +587,10 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	 
 	; Get folder of the current process
 	mov r8, MAX_PATH
-	mov rdx, szCurrentFolder
+	lea rdx, szCurrentFolder
 	mov rcx, NULL
 	call GetModuleFileName		; invoke GetModuleFileName, NULL, ADDR szCurrentFolder, MAX_PATH
-	mov rcx, szCurrentFolder
+	lea rcx, szCurrentFolder
 	call PathRemoveFileSpec		; invoke PathRemoveFileSpec, ADDR szCurrentFolder	; http://masm32.com/board/index.php?topic=3646.0
 
 	mov rax, (CSplashScreen PTR [rdi]).lpszAppPath
@@ -598,7 +603,7 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	jmp CSplashScreen_LaunchApplication_EndIf_01
 	CSplashScreen_LaunchApplication_False_01:
 		mov r8, (CSplashScreen PTR [rdi]).lpszAppPath
-		mov rdx, szCurrentFolder
+		lea rdx, szCurrentFolder
 		lea rcx, szApplicationPath
 		call PathCombine		; invoke PathCombine, ebx, ADDR szCurrentFolder, [rdi].lpszAppPath
 	CSplashScreen_LaunchApplication_EndIf_01:
@@ -606,9 +611,12 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	; Start the application
 	mov startinfo.cb, SIZEOF startinfo
 	call GetCommandLine			; invoke GetCommandLine
-	mov QWORD PTR [rsp+40], QWORD PTR [processinfo]
-	mov QWORD PTR [rsp+32], QWORD PTR [startinfo]
-	mov QWORD PTR [rsp+24], QWORD PTR [szCurrentFolder]
+	lea r9, processinfo
+	mov QWORD PTR [rsp+40], r9
+	lea r9, startinfo
+	mov QWORD PTR [rsp+32], r9
+	lea r9, szCurrentFolder
+	mov QWORD PTR [rsp+24], r9
 	mov QWORD PTR [rsp+16], NULL
 	mov QWORD PTR [rsp+8], 0
 	mov QWORD PTR [rsp], FALSE
@@ -667,11 +675,11 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 		CSplashScreen_Pump_EndIf_01:				; EndIf
 
 		; Wait for a handle to be signaled or a message
-		mov QWORD PTR [rsp], QS_ALLINPUT	; 0FFh
-		mov r9, dwTimeOut
+		mov QWORD PTR [rsp+0], QS_ALLINPUT	; 0FFh
+		mov r9d, dwTimeOut
 		mov r8, FALSE
 		mov rdx, pHandles
-		mov rcx, nCount
+		mov ecx, nCount
 		call MsgWaitForMultipleObjects		; invoke MsgWaitForMultipleObjects, nCount, pHandles, FALSE, dwTimeOut, QS_ALLINPUT
 		mov dwWaitResult, eax
 		mov eax, WAIT_OBJECT_0
@@ -719,7 +727,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 			add rdx, 8			; Point to the second element: pHandles[1]
 			mov rcx, 1			
 			call MsgWaitForMultipleObjects	; invoke MsgWaitForMultipleObjects, 1, &pHandles[1], FALSE, 0, QS_ALLINPUT
-			mov dwWaitResult, rax
+			mov dwWaitResult, eax
 			
 			; If 05
 			cmp rax, WAIT_OBJECT_0				; .IF (eax == WAIT_OBJECT_0)
@@ -768,7 +776,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 					jne FadeWindow_Start	; execute while eax != FALSE
 			CSplashScreen_Pump_EndIf_05:
 
-				mov rax, dwWaitResult	; We return the results from MsgWaitForMultipleObjects
+				mov eax, dwWaitResult	; We return the results from MsgWaitForMultipleObjects
 
 			jmp exit_PumpMsgWaitForMultipleObjects
 
@@ -783,8 +791,8 @@ CSplashScreen_PumpMsgWaitForMultipleObjects ENDP
 
 CSplashScreen_FadeWindowOut PROC uses rdi lpTHIS:QWORD, hWindow:HWND, hdcScreen:HDC
 	LOCAL dtNow:DWORD
-	LOCAL cte:DWORD
-	LOCAL result:DWORD
+	;LOCAL cte:DWORD
+	;LOCAL result:DWORD
 	
 	sub rsp, 8 * 9	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
@@ -833,7 +841,8 @@ CSplashScreen_FadeWindowOut PROC uses rdi lpTHIS:QWORD, hWindow:HWND, hdcScreen:
 
 		mov QWORD PTR [rsp+32], ULW_ALPHA
 		;lea r9, (CSplashScreen PTR [rdi]).blend
-		mov QWORD PTR [rsp+24], [(CSplashScreen PTR [rdi]).blend]
+		lea r9, (CSplashScreen PTR [rdi]).blend
+		mov QWORD PTR [rsp+24], r9
 		mov QWORD PTR [rsp+16], 000000000h
 		mov QWORD PTR [rsp+8], NULL
 		mov QWORD PTR [rsp], NULL

@@ -1,9 +1,9 @@
 
-IFDEF WIN32
-   STRUCT_ALIGN   equ 4
-ELSE
-   STRUCT_ALIGN   equ 8
-ENDIF
+;IFDEF WIN32
+;   STRUCT_ALIGN   equ 4
+;ELSE
+;   STRUCT_ALIGN   equ 8
+;ENDIF
 
 ; ************************** win64 equates ********************************
 TRUE	equ	1
@@ -66,7 +66,7 @@ WM_TIMER        equ 113h
 WM_QUIT         equ 12h
 STATUS_WAIT_0   equ 00000000h
 WAIT_OBJECT_0   equ STATUS_WAIT_0
-QS_ALLINPUT     equ 0x04FF
+QS_ALLINPUT     equ 4FFh
 PM_REMOVE       equ 1h
 
 ; ************************** win64 types ********************************
@@ -100,7 +100,7 @@ HBITMAP  TYPEDEF QWORD
 HBRUSH  TYPEDEF QWORD
 ;HCURSOR TYPEDEF QWORD
 HMONITOR TYPEDEF QWORD
-HICON   TYPEDEF QWORD
+;HICON   TYPEDEF QWORD
 LPHANDLE    TYPEDEF QWORD
 LPVOID  TYPEDEF QWORD
 PVOID   TYPEDEF QWORD
@@ -191,11 +191,11 @@ WNDCLASSEX STRUCT
   hbrBackground     HBRUSH ?
   lpszMenuName      LPSTR ?
   lpszClassName     LPSTR ?
-  hIconSm           HICON ?
+  hIconSm           QWORD ?
 WNDCLASSEX ENDS
 
 STARTUPINFO STRUCT
-     cb    DWORD 2 dup(?)
+     cb             DWORD 2 dup(?)
      lpReserved      LPTSTR ?
      lpDesktop       LPTSTR ?
      lpTitle         LPTSTR ?

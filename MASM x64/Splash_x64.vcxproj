@@ -93,6 +93,8 @@
       <NoEntryPoint>false</NoEntryPoint>
       <EntryPointSymbol>main</EntryPointSymbol>
       <AdditionalOptions>/LARGEADDRESSAWARE:NO %(AdditionalOptions)</AdditionalOptions>
+      <OptimizeReferences>
+      </OptimizeReferences>
     </Link>
     <MASM>
       <EnableAssemblyGeneratedCodeListing>false</EnableAssemblyGeneratedCodeListing>
@@ -103,6 +105,7 @@
       <DisableSymbolTable>true</DisableSymbolTable>
       <AddFirstPassListing>
       </AddFirstPassListing>
+      <PreserveIdentifierCase>0</PreserveIdentifierCase>
     </MASM>
     <BuildLog>
       <Path>$(IntDir)$(ProjectName).log</Path>
