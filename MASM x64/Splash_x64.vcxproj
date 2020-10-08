@@ -95,6 +95,7 @@
       <AdditionalOptions>/LARGEADDRESSAWARE:NO %(AdditionalOptions)</AdditionalOptions>
       <OptimizeReferences>
       </OptimizeReferences>
+      <AdditionalDependencies>gdiplus.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <MASM>
       <EnableAssemblyGeneratedCodeListing>false</EnableAssemblyGeneratedCodeListing>

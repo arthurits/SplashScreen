@@ -182,8 +182,15 @@ GetMonitorInfoW equ <__imp_GetMonitorInfoW>
     GetMonitorInfo equ <__imp_GetMonitorInfoA>
   ENDIF
 
-externdef __imp_GetObject:PPROC
-GetObject equ <__imp_GetObject>
+externdef __imp_GetObjectA:PPROC
+GetObjectA equ <__imp_GetObjectA>
+externdef __imp_GetObjectW:PPROC
+GetObjectW equ <__imp_GetObjectW>
+  IFDEF __UNICODE__
+    GetObject equ <__imp_GetObjectW>
+  ELSE
+    GetObject equ <__imp_GetObjectA>
+  ENDIF
 
 externdef __imp_SelectObject:PPROC
 SelectObject equ <__imp_SelectObject>
