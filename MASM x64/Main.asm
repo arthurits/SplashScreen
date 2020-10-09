@@ -18,19 +18,19 @@ include CSplashScreen.asm
 
 .data
 	;fileName  WORD "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
+	fileName	WORD "C", ":", "\", "U", "s", "e", "r", "s", "\"
+			WORD "A", "r", "t", "h", "u", "r", "i", "t", "\"
+			WORD "D", "o", "c", "u", "m", "e", "n", "t", "s", "\"
+			WORD "V", "i", "s", "u", "a", "l", " ", "S", "t", "u", "d", "i", "o", " ", "2", "0", "1", "7", "\"
+			WORD "P", "r", "o", "j", "e", "c", "t", "s", "\"
+			WORD "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "\"
+			WORD "M", "A", "S", "M", " ", "x", "6", "4", "\", "x", "6", "4", "\", "D", "e", "b", "u", "g", "\", "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
 	;fileName	WORD "C", ":", "\", "U", "s", "e", "r", "s", "\"
-	;		WORD "A", "r", "t", "h", "u", "r", "i", "t", "\"
-	;		WORD "D", "o", "c", "u", "m", "e", "n", "t", "s", "\"
-	;		WORD "V", "i", "s", "u", "a", "l", " ", "S", "t", "u", "d", "i", "o", " ", "2", "0", "1", "7", "\"
-	;		WORD "P", "r", "o", "j", "e", "c", "t", "s", "\"
+	;		WORD "a", "l", "f", "r", "e", "d", "o", "a", "\"
+	;		WORD "s", "o", "u", "r", "c", "e", "\"
+	;		WORD "r", "e", "p", "o", "s", "\"
 	;		WORD "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "\"
 	;		WORD "A", "S", "M", "x", "6", "4", "\", "x", "6", "4", "\", "D", "e", "b", "u", "g", "\", "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
-	fileName	WORD "C", ":", "\", "U", "s", "e", "r", "s", "\"
-			WORD "a", "l", "f", "r", "e", "d", "o", "a", "\"
-			WORD "s", "o", "u", "r", "c", "e", "\"
-			WORD "r", "e", "p", "o", "s", "\"
-			WORD "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "\"
-			WORD "A", "S", "M", "x", "6", "4", "\", "x", "6", "4", "\", "D", "e", "b", "u", "g", "\", "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
 
 	;UCSTR fileName, "settings.txt", 0
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
@@ -129,23 +129,28 @@ main proc
 	next04:								; .ENDIF
 
 	; Create CSplashScreen instance
-	;call GetProcessHeap
-	;mov r8, SIZEOF CSplashScreen
-	;mov rdx, NULL
-	;mov rcx, rax
-	;call HeapAlloc	; invoke HeapAlloc, eax, NULL, SIZEOF CSplashScreen
-	;mov splash, rax
-	;mov rbx, rax
+	call GetProcessHeap
+	mov r8, SIZEOF CSplashScreen
+	mov rdx, NULL
+	mov rcx, rax
+	call HeapAlloc	; invoke HeapAlloc, eax, NULL, SIZEOF CSplashScreen
+	mov splash, rax	; THIS pointer, save for later
+	mov rbx, rax	; save for later
 	
-	;push nFadeoutTime
-	;push lpszAppFileName
-	;push lpszImagePath
-	;push lpModuleName
-	;push rax
-	;call CSplashScreen_Init
+	mov rax, nFadeoutTime
+	mov QWORD PTR [rsp+32], rax	; 5th argument
+	mov rax, lpszAppFileName
+	mov QWORD PTR [rsp+24], rax	; 4th argument
+	mov rax, lpszImagePath
+	mov QWORD PTR [rsp+16], rax	; 3rd argument
+	mov rax, lpModuleName
+	mov QWORD PTR [rsp+8], rax	; 2nd argument
+	mov QWORD PTR [rsp], rbx	; THIS pointer
+	call CSplashScreen_Init
 	;add rsp, 32	; we are leaving rax (splash) on the stack for the next call
 	
-	;call (CSplashScreen PTR [rbx]).Show
+	mov QWORD PTR [rsp], rbx
+	call (CSplashScreen PTR [rbx]).Show
 	;add rsp, 8	; we now completely clean the stack
 
 	exit_main_dispose_CFile:
@@ -193,23 +198,23 @@ main endp
 ; Registers changed:  rax, rbx, rcx, rdx
 ; https://stackoverflow.com/questions/13664778/converting-string-to-integer-in-masm-esi-difficulty
 ;*************************************************
-StringToInt PROC uses rbx rcx rdx lpString:QWORD
+StringToInt PROC uses rbx rcx rsi lpString:QWORD
 	xor rax, rax	; Total counter
 	xor rbx, rbx	; Char pointer
 	mov rcx, 10d	; Decimal factor multiplier
-	mov rdx, lpString    ; Point at the beginning of the string
+	mov rsi, lpString    ; Point at the beginning of the string
 
 	; Loop through each char in string
 	loopString:
 		; Check wether we reached the end of the string
-		cmp WORD PTR [rdx], 0000h
+		cmp WORD PTR [rsi], 0000h
 		je exit_StringToInt
 
 		; Multiply the accumulated quantity by 10
 		mul rcx
 
 		; Subtract 48 from ASCII value (number 0) of current char to get integer
-		mov     bx, WORD PTR [rdx]
+		mov     bx, WORD PTR [rsi]
 		sub     bx, 0048d        
 
 		; Error checking to ensure values are digits 0-9
@@ -220,7 +225,7 @@ StringToInt PROC uses rbx rcx rdx lpString:QWORD
 
 		; If it's a digit, add to the total and go on with the loop
 		add     rax, rbx	; Add to total counter
-		add     rdx, 2d		; Point to next char (2 bytes per char)
+		add     rsi, 2d		; Point to next char (2 bytes per char)
     jmp loopString
 
 	jmp exit_StringToInt
