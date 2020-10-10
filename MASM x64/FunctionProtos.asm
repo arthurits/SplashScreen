@@ -274,8 +274,16 @@ GetTickCount equ <__imp_GetTickCount>
 externdef __imp_ExitProcess:PPROC
 ExitProcess equ <__imp_ExitProcess>
 
+externdef __imp_GetFileAttributesA:PPROC
+GetFileAttributesA equ <__imp_GetFileAttributesA>
 externdef __imp_GetFileAttributesW:PPROC
 GetFileAttributesW equ <__imp_GetFileAttributesW>
+  IFDEF __UNICODE__
+    GetFileAttributes equ <__imp_GetFileAttributesW>
+  ELSE
+    GetFileAttributes equ <__imp_GetFileAttributesA>
+  ENDIF
+
 
 externdef __imp_GetProcessHeap:PPROC
 GetProcessHeap equ <__imp_GetProcessHeap>

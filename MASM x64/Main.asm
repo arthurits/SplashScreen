@@ -114,7 +114,7 @@ main proc
 
 	; If the application doesn't exist, then exit the program
 	mov rcx, lpszAppFileName
-	call GetFileAttributesW		; invoke GetFileAttributesW, lpszAppFileName
+	call GetFileAttributes				; invoke GetFileAttributesW, lpszAppFileName
 	cmp rax, INVALID_FILE_ATTRIBUTES	; .IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 	je next03
 	cmp rax, FILE_ATTRIBUTE_DIRECTORY
@@ -134,7 +134,7 @@ main proc
 	mov rdx, NULL
 	mov rcx, rax
 	call HeapAlloc	; invoke HeapAlloc, eax, NULL, SIZEOF CSplashScreen
-	mov splash, rax	; THIS pointer, save for later
+	mov splash, rax	; THIS pointer
 	mov rbx, rax	; save for later
 	
 	mov rax, nFadeoutTime

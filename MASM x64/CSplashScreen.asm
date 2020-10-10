@@ -371,7 +371,7 @@ CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
     lea     rdi, wc
     rep stosb
 
-	sub rsp, 8 * 1	; Shallow space for Win32 API x64-calls
+	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 
 	; Get this pointer
@@ -404,7 +404,7 @@ CSplashScreen_RegisterWindowClass ENDP
 ; Registers a window class for the splash and splash owner windows.
 ; --=====================================================================================--
 CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
-	sub rsp, 8 * 2	; Shallow space for Win32 API x64-calls
+	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 	mov rdi, lpTHIS
 

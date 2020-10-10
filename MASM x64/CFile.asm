@@ -191,29 +191,26 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 
 	mov rdx, offset fileSize2
 	mov rcx, rax
-	call GetFileSizeEx
-	;invoke GetFileSizeEx, [edi].handle, ADDR fileSize2
+	call GetFileSizeEx						; invoke GetFileSizeEx, [edi].handle, ADDR fileSize2
 	mov eax, fileSize2.LowPart
-	inc rax						; One bit for the NULL terminated
-	mov r10, rax
-	mov (CFile ptr[rdi]).bytesRead, r10		; Save the size in the in-memory struct
+	inc rax									; One byte for the NULL terminated
+	;mov r10, rax
+	mov (CFile ptr[rdi]).bytesRead, rax		; Save the size in the in-memory struct
 
 	mov rdx, rax
-	mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT
-	call GlobalAlloc
-	;invoke GlobalAlloc, GMEM_MOVEABLE or GMEM_ZEROINIT, eax
+	mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT	; we set all bytes to 0
+	call GlobalAlloc						; invoke GlobalAlloc, GMEM_MOVEABLE or GMEM_ZEROINIT, eax
 	mov hGLOBAL, rax
 	mov rcx, rax
 	call GlobalLock
-	mov lpGLOBAL, rax
+	mov lpGLOBAL, rax						; lpGlobal is now null-terminated
 
 	mov DWORD PTR [rsp+32], NULL
 	lea r9, SizeReadWrite2
 	mov r8d, fileSize2.LowPart
-	mov rdx, rax
+	mov rdx, rax							; lpGlobal
 	mov rcx, (CFile ptr[rdi]).hFile
-	call ReadFile
-	;invoke ReadFile, [edi].handle, lpGLOBAL, fileSize2.LowPart, ADDR SizeReadWrite2, NULL
+	call ReadFile							; invoke ReadFile, [edi].handle, lpGLOBAL, fileSize2.LowPart, ADDR SizeReadWrite2, NULL
 	;mov DWORD PTR [ebp-8], eax
 	mov rcx, (CFile ptr[rdi]).hFile
 	call CloseHandle
@@ -237,14 +234,15 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 	mov DWORD PTR [rsp+40], NULL
 	mov rax, (CFile ptr[rdi]).ptrHeapText
 	mov QWORD PTR [rsp+32], rax
-	mov r9, -1
+	mov r9, -1			; since lpGlobal is null-terminated this (the size in bytes) can be set to -1
 	mov r8, lpGLOBAL
 	mov rdx, NULL
 	mov rcx, CP_UTF8
 	call MultiByteToWideChar	; Returns the size, in characters, of the buffer indicated by [rsp+32]
 	;invoke MultiByteToWideChar, CP_UTF8, 0, DWORD PTR [ebp-8], -1, [edi].ptrHeapText, 0
 	mov QWORD PTR [rsp+40], rax
-	;mov QWORD PTR [rsp+32], (CFile ptr[rdi]).ptrHeapText
+	mov rax, (CFile ptr[rdi]).ptrHeapText
+	mov QWORD PTR [rsp+32], rax
 	mov r9, -1
 	mov r8, lpGLOBAL
 	mov rdx, NULL
