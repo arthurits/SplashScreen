@@ -39,7 +39,6 @@ _CSplashScreen_ equ 1
 	CSplashScreen_initdata LABEL BYTE
 		QWORD OFFSET CSplashScreen_Destructor
 		QWORD OFFSET CSplashScreen_Show
-		QWORD OFFSET CSplashScreen_CreateBitmapImage
 		QWORD OFFSET CSplashScreen_RegisterWindowClass
 		QWORD OFFSET CSplashScreen_UnregisterWindowClass
 		QWORD OFFSET CSplashScreen_CreateBitmapImage
@@ -185,10 +184,11 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 		call CSplashScreen_RegisterWindowClass
 		call CSplashScreen_CreateSplashWindow
 		mov hSplashWnd, rax
+		mov rcx, rax
 		
 		lea rax, hBmp
-		mov QWORD PTR [rsp + 16], rax	; 3rd argument
-		mov QWORD PTR [rsp + 8], rax		; 2nd argument
+		mov QWORD PTR [rsp + 16], rax		; 3rd argument
+		mov QWORD PTR [rsp + 8], rcx		; 2nd argument
 		; mov QWORD PTR [rsp], rdi			; Not necessary, it's already there
 		call CSplashScreen_SetSplashImage	; returns rax=0 if unsuccessful
 
@@ -371,31 +371,27 @@ CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
     lea     rdi, wc
     rep stosb
 
-	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls
+	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls (minimum 32 bytes)
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 
 	; Get this pointer
 	mov  rdi, lpTHIS
 
     ;Register the window class
-    mov	rcx, 0
-	call GetModuleHandle	; invoke GetModuleHandle, 0
+    ;mov	rcx, 0
+	;call GetModuleHandle	; invoke GetModuleHandle, 0
 	mov		wc.cbSize, sizeof WNDCLASSEX
 	lea rcx, DefWindowProc
 	mov     wc.lpfnWndProc, rcx	; http://masm32.com/board/index.php?topic=2469.0
-    mov     wc.hInstance, rax
-	lea rcx, strClassName
+    mov rcx, (CSplashScreen PTR [rdi]).lpModuleName
+	mov     wc.hInstance, rcx
+	mov rcx, offset strClassName
     mov     wc.lpszClassName, rcx
 	lea rcx, wc
     call RegisterClassEx	; invoke RegisterClassEx, ADDR wc
 
-	;Register the window class
-	;mov     wc.lpfnWndProc, OFFSET WindowProc
-	;wc.lpfnWndProc = DefWindowProc;
-	;wc.hInstance = m_hInstance;
-	;wc.hIcon = LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_SPLASHICON));
-	;wc.hCursor = LoadCursor(NULL, IDC_ARROW); 
-	;wc.lpszClassName = m_strSplashClass.c_str();
+
+
 
 	ret
 CSplashScreen_RegisterWindowClass ENDP
@@ -418,23 +414,23 @@ CSplashScreen_UnregisterWindowClass ENDP
 
 
 CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
-	mov  rdi, lpTHIS
 	sub rsp, 8 * 12	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	mov  rdi, lpTHIS
 	
-	mov QWORD PTR [rsp+56], NULL
+	mov QWORD PTR [rsp+88], NULL
 	mov rax, (CSplashScreen PTR [rdi]).lpModuleName
-	mov QWORD PTR [rsp+48], rax
-	mov QWORD PTR [rsp+40], NULL
-	mov QWORD PTR [rsp+32], NULL
-	mov QWORD PTR [rsp+24], 0
-	mov QWORD PTR [rsp+16], 0
-	mov QWORD PTR [rsp+8], 0
-	mov QWORD PTR [rsp], 0
-	mov r9, WS_POPUP or WS_VISIBLE
+	mov QWORD PTR [rsp+80], rax
+	mov QWORD PTR [rsp+72], NULL
+	mov QWORD PTR [rsp+64], NULL
+	mov DWORD PTR [rsp+56], 0
+	mov DWORD PTR [rsp+48], 0
+	mov DWORD PTR [rsp+40], 0
+	mov DWORD PTR [rsp+32], 0
+	mov r9d, WS_POPUP or WS_VISIBLE
 	mov r8, NULL
 	mov rdx, OFFSET strClassName
-	mov rcx, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST
+	mov ecx, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST
 	call CreateWindowEx
 	;invoke CreateWindowEx, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST, OFFSET strClassName, NULL, WS_POPUP or WS_VISIBLE, 0, 0, 0, 0, NULL, NULL, [edi].lpModuleName, NULL
 	; https://tuttlem.github.io/2015/09/14/windows-programs-with-masm32.html
@@ -448,7 +444,7 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	LOCAL ptOrigin :POINT		; defined in windef.h
 	LOCAL sizeSplash :_SIZE		; defined in windef.h
 	LOCAL hmonPrimary :HMONITOR	; defined in windef.h
-	LOCAL monInfo :MONITORINFO	;defined in WinUser.h
+	LOCAL monitorInfo :MONITORINFO	;defined in WinUser.h
 	;LOCAL rcWork :RECT		; defined in
 	LOCAL hdcScreen :HDC	; defined in
 	LOCAL hdcMem :HDC		; defined in
@@ -459,9 +455,9 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	mov ptZero.x, 0
 	mov ptZero.y, 0
 
-    mov     rcx, SIZEOF monInfo
+    mov     rcx, SIZEOF monitorInfo
     xor     rax, rax
-    lea     rdi, monInfo
+    lea     rdi, monitorInfo
     rep stosb
 
 	sub rsp, 8 * 9	; Shallow space for Win32 API x64-calls
@@ -484,26 +480,26 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	mov ecx, ptZero.x
 	call MonitorFromPoint	; invoke MonitorFromPoint, ptZero.x, ptZero.y, MONITOR_DEFAULTTOPRIMARY	; 0x00000001
 	mov hmonPrimary, rax
-	mov rax, SIZEOF monInfo
-	mov monInfo.cbSize, eax
+	mov rax, SIZEOF monitorInfo
+	mov monitorInfo.cbSize, eax
 	
-	lea rdx, monInfo
+	lea rdx, monitorInfo
 	mov rcx, hmonPrimary
 	call GetMonitorInfo		; invoke GetMonitorInfo, hmonPrimary, ADDR monitorinfo
 
 	; Center the bitmap into the primary monitor
-	mov eax, monInfo.rcMonitor.right	; rcWork plus the windows taskbar
-	sub eax, monInfo.rcMonitor.left
+	mov eax, monitorInfo.rcMonitor.right	; rcWork plus the windows taskbar
+	sub eax, monitorInfo.rcMonitor.left
 	sub eax, sizeSplash.x
 	shr eax, 1
-	add eax, monInfo.rcMonitor.left
+	add eax, monitorInfo.rcMonitor.left
 	mov ptOrigin.x, eax
 
-	mov eax, monInfo.rcMonitor.bottom
-	sub eax, monInfo.rcMonitor.top
+	mov eax, monitorInfo.rcMonitor.bottom
+	sub eax, monitorInfo.rcMonitor.top
 	sub eax, sizeSplash.y
 	shr eax, 1
-	add eax, monInfo.rcMonitor.top
+	add eax, monitorInfo.rcMonitor.top
 	mov ptOrigin.y, eax
 
 	; Create a memory DC holding the splash bitmap
@@ -525,14 +521,14 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	mov blend.AlphaFormat, AC_SRC_ALPHA	; 0x01
 
 	; Paint the window (in the right location) with the alpha-blended bitmap
-	mov QWORD PTR [rsp+32], ULW_ALPHA
+	mov QWORD PTR [rsp+64], ULW_ALPHA
 	lea r9, blend
-	mov QWORD PTR [rsp+24], r9
-	mov QWORD PTR [rsp+16], 000000000h
+	mov QWORD PTR [rsp+56], r9
+	mov QWORD PTR [rsp+48], 000000000h
 	lea r9, ptZero
-	mov QWORD PTR [rsp+8], r9
+	mov QWORD PTR [rsp+40], r9
 	lea r9, hdcMem
-	mov QWORD PTR [rsp], r9
+	mov QWORD PTR [rsp+32], r9
 	lea r9, sizeSplash
 	lea r8, ptOrigin
 	mov rdx, hdcScreen
@@ -550,11 +546,11 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 		call ReleaseDC			; invoke ReleaseDC, NULL, hdcScreen
 
 	; Center the window
-	mov QWORD PTR [rsp+16], SWP_SHOWWINDOW	; window-positioning options (0x0040);
+	mov QWORD PTR [rsp+48], SWP_SHOWWINDOW	; window-positioning options (0x0040);
 	mov r9d, sizeSplash.y
-	mov DWORD PTR [rsp+8], r9d				; height
+	mov DWORD PTR [rsp+40], r9d				; height
 	mov r9d, sizeSplash.x
-	mov DWORD PTR [rsp], r9d				; width
+	mov DWORD PTR [rsp+32], r9d				; width
 	mov r9d, ptOrigin.y						; vertical position
 	mov r8d, ptOrigin.x						; horizontal position
 	mov rdx, HWND_TOPMOST					; placement-order handle ((HWND)-1)
@@ -567,13 +563,13 @@ CSplashScreen_SetSplashImage ENDP
 CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	LOCAL szCurrentFolder[MAX_PATH]:WORD
 	LOCAL szApplicationPath[MAX_PATH]:WORD
-	LOCAL startinfo:STARTUPINFO
+	LOCAL startupinfo:STARTUPINFO
 	LOCAL processinfo:PROCESS_INFORMATION
 	
 	; Initialize structs to 0
-	mov rcx, SIZEOF startinfo
+	mov rcx, SIZEOF startupinfo
 	xor rax, rax
-	lea rdi, startinfo
+	lea rdi, startupinfo
 	rep stosb
 	
 	mov rcx, SIZEOF processinfo
@@ -609,17 +605,17 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	CSplashScreen_LaunchApplication_EndIf_01:
 
 	; Start the application
-	mov startinfo.cb, SIZEOF startinfo
+	mov startupinfo.cb, SIZEOF startupinfo
 	call GetCommandLine			; invoke GetCommandLine
 	lea r9, processinfo
-	mov QWORD PTR [rsp+40], r9
-	lea r9, startinfo
-	mov QWORD PTR [rsp+32], r9
+	mov QWORD PTR [rsp+72], r9
+	lea r9, startupinfo
+	mov QWORD PTR [rsp+64], r9
 	lea r9, szCurrentFolder
-	mov QWORD PTR [rsp+24], r9
-	mov QWORD PTR [rsp+16], NULL
-	mov QWORD PTR [rsp+8], 0
-	mov QWORD PTR [rsp], FALSE
+	mov QWORD PTR [rsp+56], r9
+	mov QWORD PTR [rsp+48], NULL
+	mov QWORD PTR [rsp+40], 0
+	mov QWORD PTR [rsp+32], FALSE
 	mov r9, NULL
 	mov r8, NULL
 	mov rdx, rax
@@ -642,7 +638,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 	LOCAL dwTimeOut			:DWORD
 	LOCAL dwWaitResult		:DWORD
 	;LOCAL hdcScreen			:HDC
-	LOCAL sMsg				:MSG
+	LOCAL msg				:MSG
 
 	sub rsp, 8 * 5	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
@@ -675,7 +671,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 		CSplashScreen_Pump_EndIf_01:				; EndIf
 
 		; Wait for a handle to be signaled or a message
-		mov QWORD PTR [rsp+0], QS_ALLINPUT	; 0FFh
+		mov QWORD PTR [rsp+32], QS_ALLINPUT	; 0FFh
 		mov r9d, dwTimeOut
 		mov r8, FALSE
 		mov rdx, pHandles
@@ -693,26 +689,26 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 
 			While_Peek_Start:
 				; If 04
-				cmp sMsg.message, WM_QUIT	; .IF (msg.message == WM_QUIT)
+				cmp msg.message, WM_QUIT	; .IF (msg.message == WM_QUIT)
 				jne CSplashScreen_Pump_EndIf_04
 					; Repost quit message and return
-					mov rcx, sMsg.wParam
+					mov rcx, msg.wParam
 					call PostQuitMessage	; invoke PostQuitMessage, msg.wParam
 					;return WAIT_OBJECT_0 + nCount;
 					jmp exit_PumpMsgWaitForMultipleObjects
 				CSplashScreen_Pump_EndIf_04:	; EndIf 04
 				; Dispatch thread message
-				lea rcx, sMsg
+				lea rcx, msg
 				call TranslateMessage	; invoke TranslateMessage, ADDR msg
-				lea rcx, sMsg
+				lea rcx, msg
 				call DispatchMessage	; invoke DispatchMessage, ADDR msg
 
 			While_Peek_Condition:
-				mov QWORD PTR [rsp], PM_REMOVE
+				mov QWORD PTR [rsp+32], PM_REMOVE
 				mov r9, 0
 				mov r8, 0
 				mov rdx, NULL
-				lea rcx, sMsg
+				lea rcx, msg
 				call PeekMessage	; invoke PeekMessage, ADDR msg, NULL, 0, 0, PM_REMOVE
 				cmp rax, FALSE
 				jne While_Peek_Start	; execute while eax != FALSE
@@ -750,7 +746,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 						; Handle the error and possibly exit
 					CSplashScreen_Pump_False_06:		; .ELSE
 						; If 07
-						cmp sMsg.message, WM_TIMER			; .IF (msg.message == WM_TIMER)
+						cmp msg.message, WM_TIMER			; .IF (msg.message == WM_TIMER)
 						jne CSplashScreen_Pump_EndIf_07
 							mov r8, hdcScreen			; hdcScreen
 							mov rdx, hwndSplash
@@ -760,9 +756,9 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 							je CSplashScreen_Pump_EndIf_05
 						CSplashScreen_Pump_EndIf_07:		; .ENDIF
 						; Dispatch thread message
-						lea rcx, sMsg
+						lea rcx, msg
 						call TranslateMessage	; invoke TranslateMessage, ADDR msg
-						lea rcx, sMsg
+						lea rcx, msg
 						call DispatchMessage	; invoke DispatchMessage, ADDR msg
 					CSplashScreen_Pump_EndIf_06:		; .ENDIF
 				
@@ -770,7 +766,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 					mov r9, 0
 					mov r8, 0
 					mov rdx, hwndSplash
-					lea rcx, sMsg
+					lea rcx, msg
 					call GetMessage	; invoke GetMessage, ADDR msg, hwndSplash, 0, 0
 					cmp rax, FALSE
 					jne FadeWindow_Start	; execute while eax != FALSE
@@ -839,13 +835,13 @@ CSplashScreen_FadeWindowOut PROC uses rdi lpTHIS:QWORD, hWindow:HWND, hdcScreen:
 
 		mov (CSplashScreen PTR [rdi]).blend.SourceConstantAlpha, al	; BYTE PTR [eax]
 
-		mov QWORD PTR [rsp+32], ULW_ALPHA
+		mov QWORD PTR [rsp+64], ULW_ALPHA
 		;lea r9, (CSplashScreen PTR [rdi]).blend
 		lea r9, (CSplashScreen PTR [rdi]).blend
-		mov QWORD PTR [rsp+24], r9
-		mov QWORD PTR [rsp+16], 000000000h
-		mov QWORD PTR [rsp+8], NULL
-		mov QWORD PTR [rsp], NULL
+		mov QWORD PTR [rsp+56], r9
+		mov QWORD PTR [rsp+48], 000000000h
+		mov QWORD PTR [rsp+40], NULL
+		mov QWORD PTR [rsp+32], NULL
 		mov r9, NULL
 		mov r8, NULL
 		mov rdx, hdcScreen
@@ -879,11 +875,11 @@ CenterWindow proc hWindow:QWORD
 	mov rcx, rax 
 	call GetWindowRect	; invoke GetWindowRect,ecx,addr DesktopRect 
 	
-	mov QWORD PTR [rsp+8], 0		; 6th parameter
+	mov QWORD PTR [rsp+40], 0		; 6th parameter
 	mov  eax, DlgRect.bottom 
 	sub  eax, DlgRect.top 
 	mov  DlgHeight,eax 
-	mov QWORD PTR [rsp], rax		; 5th parameter
+	mov QWORD PTR [rsp+32], rax		; 5th parameter
 	mov  eax, DlgRect.right 
 	sub  eax, DlgRect.left 
 	mov  DlgWidth,eax 

@@ -252,11 +252,11 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 	;invoke MultiByteToWideChar, CP_UTF8, 0, DWORD PTR [ebp-8], -1, [edi].ptrHeapText, eax
 
 	;print [edi].ptrHeapText
-	mov		r9, NULL
-	mov		r8, (CFile ptr[rdi]).ptrLine
-	mov		rdx, (CFile ptr[rdi]).ptrHeapText
-	mov		rcx, NULL
-	call	MessageBox
+	;mov		r9, NULL
+	;mov		r8, NULL
+	;mov		rdx, (CFile ptr[rdi]).ptrHeapText
+	;mov		rcx, NULL
+	;call	MessageBox
 
 	; Release heap memory
 	mov rcx, lpGLOBAL

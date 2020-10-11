@@ -106,7 +106,7 @@
       <DisableSymbolTable>true</DisableSymbolTable>
       <AddFirstPassListing>
       </AddFirstPassListing>
-      <PreserveIdentifierCase>0</PreserveIdentifierCase>
+      <PreserveIdentifierCase>1</PreserveIdentifierCase>
     </MASM>
     <BuildLog>
       <Path>$(IntDir)$(ProjectName).log</Path>

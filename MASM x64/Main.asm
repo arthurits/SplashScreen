@@ -51,14 +51,14 @@ main proc
 
 	; Get the current handle
 	mov rcx, NULL
-	call GetModuleHandleW
+	call GetModuleHandle
 	mov lpModuleName, rax
 	cmp rax, NULL
 	je exit_main
 
 	; If settings.txt doesn't exist, then exit the program
 	mov rcx, OFFSET fileName
-	call GetFileAttributesW
+	call GetFileAttributes
 	cmp rax, INVALID_FILE_ATTRIBUTES	;.IF ( rax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 	je next01
 	cmp rax, FILE_ATTRIBUTE_DIRECTORY

@@ -6,9 +6,7 @@ externdef __imp_GetDC:PPROC
 GetDC equ <__imp_GetDC>
 
 externdef __imp_CreateWindowExA:PPROC
-CreateWindowExA equ <__imp_CreateWindowExA>
 externdef __imp_CreateWindowExW:PPROC
-CreateWindowExW equ <__imp_CreateWindowExW>
   IFDEF __UNICODE__
     CreateWindowEx equ <__imp_CreateWindowExW>
   ELSE
