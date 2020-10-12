@@ -371,7 +371,7 @@ CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
     lea     rdi, wc
     rep stosb
 
-	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls (minimum 32 bytes)
+	sub rsp, 8 * 12	; Shallow space for Win32 API x64-calls (minimum 32 bytes)
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 
 	; Get this pointer
@@ -389,9 +389,6 @@ CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
     mov     wc.lpszClassName, rcx
 	lea rcx, wc
     call RegisterClassEx	; invoke RegisterClassEx, ADDR wc
-
-
-
 
 	ret
 CSplashScreen_RegisterWindowClass ENDP
@@ -418,9 +415,9 @@ CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 	mov  rdi, lpTHIS
 	
-	mov QWORD PTR [rsp+88], NULL
-	mov rax, (CSplashScreen PTR [rdi]).lpModuleName
-	mov QWORD PTR [rsp+80], rax
+	;mov QWORD PTR [rsp+88], NULL
+	;mov r9, (CSplashScreen PTR [rdi]).lpModuleName
+	;mov QWORD PTR [rsp+80], r9
 	mov QWORD PTR [rsp+72], NULL
 	mov QWORD PTR [rsp+64], NULL
 	mov DWORD PTR [rsp+56], 0
