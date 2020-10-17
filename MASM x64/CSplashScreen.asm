@@ -415,9 +415,14 @@ CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 	mov  rdi, lpTHIS
 	
-	;mov QWORD PTR [rsp+88], NULL
-	;mov r9, (CSplashScreen PTR [rdi]).lpModuleName
-	;mov QWORD PTR [rsp+80], r9
+	;mov         rdi,rsp  
+	;mov         ecx,18h  
+	;mov         eax,0CCCCCCCCh  
+	;rep stos    dword ptr [rdi] 
+
+	mov QWORD PTR [rsp+88], NULL
+	mov r9, (CSplashScreen PTR [rdi]).lpModuleName
+	mov QWORD PTR [rsp+80], r9
 	mov QWORD PTR [rsp+72], NULL
 	mov QWORD PTR [rsp+64], NULL
 	mov DWORD PTR [rsp+56], 0
