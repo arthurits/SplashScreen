@@ -128,12 +128,12 @@ CFile_Init ENDP
 ; --=====================================================================================--
 CFile_Destructor PROC uses rdi lpTHIS:QWORD 
 	; Stack alignment
-	sub rsp, 8*4	; Shallow space for Win64 calls
-	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
-	;mov r15, rbp
-	;sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
-	
+	mov r15, rsp
+	sub rsp, 8*4	; Shallow space for Win32 API x64 calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov rdi, lpTHIS
+
 	; http://masm32.com/board/index.php?topic=7210.0
 	mov rcx, (CFile ptr[rdi]).hFile
 	cmp rcx, NULL
@@ -147,7 +147,7 @@ CFile_Destructor PROC uses rdi lpTHIS:QWORD
 	call GlobalFree
 	next02:   
 	
-	;add rsp, r15	; Restore the stack pointer to point to the return address
+	add rsp, r15	; Restore the stack pointer to point to the return address
 	ret
 CFile_Destructor ENDP
 
@@ -162,11 +162,11 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 ;---------------------------------------------------------
 	LOCAL hGLOBAL: QWORD
 	LOCAL lpGLOBAL: QWORD
-
-	sub rsp, 8 * 7	; Shallow space for Win64 calls
-	and rsp, -10h	; Add 8 bits if needed to align to 16 bits
-	;mov r15, rbp
-	;sub r15, rsp	; The difference rbp-rsp will be added to rsp at the end of the procedure
+	
+	mov r15, rsp
+	sub rsp, 8*4	; Shallow space for Win32 API x64 calls
+	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 
 	;xor r10, r10
 	;mov r10b, spl	; Align to 16 bits if needed
@@ -264,8 +264,7 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 	mov rcx, hGLOBAL
 	call GlobalFree
 
-	;add rsp, r15	; Restore the stack pointer to point to the return address
-
+	add rsp, r15	; Restore the stack pointer to point to the return address
 	ret
 CFile_OpenFile ENDP
 

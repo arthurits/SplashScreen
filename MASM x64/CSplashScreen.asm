@@ -98,7 +98,7 @@ CSplashScreen_Init PROC uses rcx rsi rdi lpTHIS:QWORD, hInstance:QWORD, strImage
 	    xor     rax, rax
 	    lea     rdi, (CSplashScreen PTR [rdi]).blend
 	    rep stosb
-
+	
 	ret
 CSplashScreen_Init ENDP
 
@@ -128,8 +128,10 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 	LOCAL hSplashWnd :HANDLE
 	LOCAL hdcScreen	:HDC
 	
+	mov r15, rsp
 	sub rsp, 8 * 6	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 
 	mov  rdi, lpTHIS
 
@@ -252,7 +254,7 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 	; Close the COM library
 	call CoUninitialize		; invoke CoUninitialize
 
-	;add rsp, r15	; Restore the stack pointer to point to the return address
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_Show ENDP
 
@@ -280,8 +282,10 @@ CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
 	mov GpGraphics, 0
 	mov GpSolidFill, 0
 	
-	sub rsp, 8 * 6	; Shallow space for Win32 API x64-calls
+	mov r15, rsp
+	sub rsp, 8 * 6	; Shallow space for Win32 API x64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 
 	mov rdi, lpTHIS
 
@@ -356,7 +360,7 @@ CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
 		call GdiplusShutdown	; invoke GdiplusShutdown, ADDR gdiToken
 		mov rax, hBmp		; This has to be deallocated later by the user
 
-	; add rsp, r15	; Restore the stack pointer to point to the return address
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_CreateBitmapImage ENDP
 
@@ -373,8 +377,10 @@ CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
     lea     rdi, wc
     rep stosb
 
+	mov r15, rsp
 	sub rsp, 8 * 12	; Shallow space for Win32 API x64-calls (minimum 32 bytes)
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 
 	; Get this pointer
 	mov  rdi, lpTHIS
@@ -392,6 +398,7 @@ CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
 	lea rcx, wc
     call RegisterClassEx	; invoke RegisterClassEx, ADDR wc
 
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_RegisterWindowClass ENDP
 
@@ -399,8 +406,10 @@ CSplashScreen_RegisterWindowClass ENDP
 ; Registers a window class for the splash and splash owner windows.
 ; --=====================================================================================--
 CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
+	mov r15, rsp
 	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov rdi, lpTHIS
 
 	;invoke GetModuleHandle, 0
@@ -408,13 +417,16 @@ CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
 	mov rcx, OFFSET strClassName
 	call UnregisterClass		; invoke UnregisterClass, OFFSET strClassName, (CSplashScreen PTR [rdi]).lpModuleName
 
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_UnregisterWindowClass ENDP
 
 
 CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
+	mov r15, rsp
 	sub rsp, 8 * 12	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov  rdi, lpTHIS
 	
 	;mov         rdi,rsp  
@@ -439,6 +451,7 @@ CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
 	;invoke CreateWindowEx, WS_EX_LAYERED or WS_EX_TOOLWINDOW or WS_EX_TOPMOST, OFFSET strClassName, NULL, WS_POPUP or WS_VISIBLE, 0, 0, 0, 0, NULL, NULL, [edi].lpModuleName, NULL
 	; https://tuttlem.github.io/2015/09/14/windows-programs-with-masm32.html
 	
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_CreateSplashWindow ENDP
 
@@ -464,8 +477,10 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
     lea     rdi, monitorInfo
     rep stosb
 
+	mov r15, rsp
 	sub rsp, 8 * 9	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov rdi, lpTHIS	; Get this pointer
 
 	; Get the dimensions of the bitmap used as the splash screen
@@ -561,6 +576,7 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	mov rcx, hwndSplash						; handle to window
 	call SetWindowPos		; invoke SetWindowPos, hwndSplash, HWND_TOPMOST, ptOrigin.x, ptOrigin.y, sizeSplash.x, sizeSplash.y, SWP_SHOWWINDOW
 
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_SetSplashImage ENDP
 
@@ -581,8 +597,10 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	lea rdi, processinfo
 	rep stosb
 
+	mov r15, rsp
 	sub rsp, 8 * 10	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov rdi, lpTHIS	; Get this pointer
 	 
 	; Get folder of the current process
@@ -633,6 +651,7 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	; Return the handle of the launched application. The caller should release this using CloseHandle
 	mov rax, processinfo.hProcess
 	
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_LaunchApplication ENDP
 
@@ -644,8 +663,10 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 	;LOCAL hdcScreen			:HDC
 	LOCAL msg				:MSG
 
+	mov r15, rsp
 	sub rsp, 8 * 5	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov rdi, lpTHIS	; Get this pointer
 
 	call GetTickCount		; invoke GetTickCount
@@ -786,6 +807,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 
 	exit_PumpMsgWaitForMultipleObjects:
 
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_PumpMsgWaitForMultipleObjects ENDP
 
@@ -794,8 +816,10 @@ CSplashScreen_FadeWindowOut PROC uses rdi lpTHIS:QWORD, hWindow:HWND, hdcScreen:
 	;LOCAL cte:DWORD
 	;LOCAL result:DWORD
 	
+	mov r15, rsp
 	sub rsp, 8 * 9	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
+	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov rdi, lpTHIS	; Get this pointer
 
 	call GetTickCount		; invoke GetTickCount
@@ -854,6 +878,7 @@ CSplashScreen_FadeWindowOut PROC uses rdi lpTHIS:QWORD, hWindow:HWND, hdcScreen:
 		mov rax, 0		; Return false (we are still fading out the window)
 	CSplashScreen_FadeWindowOut_EndIf_01:
 
+	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_FadeWindowOut ENDP
 
