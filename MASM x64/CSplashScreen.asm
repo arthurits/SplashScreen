@@ -181,7 +181,9 @@ CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
 	cmp rax, NULL	; .IF (hBitmap!=NULL)
 	je exit_Show		; if hBitmap==0 then exit
 		; if hBitmap exists, then create the splash window and set the bitmap image
+		mov QWORD PTR [rsp], rdi
 		call CSplashScreen_RegisterWindowClass
+		mov QWORD PTR [rsp], rdi
 		call CSplashScreen_CreateSplashWindow
 		mov hSplashWnd, rax
 		mov rcx, rax
