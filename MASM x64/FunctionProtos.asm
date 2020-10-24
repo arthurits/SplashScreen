@@ -1,347 +1,269 @@
+;
+; Function protos to be used only with Windows SDK libraries.
+; Not intended to be used with Masm32 SDK.
+;
+
 ; user32.lib
-externdef __imp_AllowSetForegroundWindow:PPROC
-AllowSetForegroundWindow equ <__imp_AllowSetForegroundWindow>
+externdef AllowSetForegroundWindow:PROC
 
-externdef __imp_GetDC:PPROC
-GetDC equ <__imp_GetDC>
+externdef GetDC:PROC
 
-externdef __imp_CreateWindowExA:PPROC
-externdef __imp_CreateWindowExW:PPROC
+externdef CreateWindowExA:PROC
+externdef CreateWindowExW:PROC
   IFDEF __UNICODE__
-    CreateWindowEx equ <__imp_CreateWindowExW>
+    CreateWindowEx equ CreateWindowExW
   ELSE
-    CreateWindowEx equ <__imp_CreateWindowExA>
+    CreateWindowEx equ CreateWindowExA
   ENDIF
 
-externdef __imp_DefWindowProcA:PPROC
-DefWindowProcA equ <__imp_DefWindowProcA>
-externdef __imp_DefWindowProcW:PPROC
-DefWindowProcW equ <__imp_DefWindowProcW>
+externdef DefWindowProcA:PROC
+externdef DefWindowProcW:PROC
   IFDEF __UNICODE__
-    DefWindowProc equ <__imp_DefWindowProcW>
+    DefWindowProc equ DefWindowProcW
   ELSE
-    DefWindowProc equ <__imp_DefWindowProcA>
+    DefWindowProc equ DefWindowProcA
   ENDIF
 
-externdef __imp_DestroyWindow:PPROC
-DestroyWindow equ <__imp_DestroyWindow>
+externdef DestroyWindow:PROC
 
-externdef __imp_DispatchMessageA:PPROC
-DispatchMessageA equ <__imp_DispatchMessageA>
-externdef __imp_DispatchMessageW:PPROC
-DispatchMessageW equ <__imp_DispatchMessageW>
+externdef DispatchMessageA:PROC
+externdef DispatchMessageW:PROC
   IFDEF __UNICODE__
-    DispatchMessage equ <__imp_DispatchMessageW>
+    DispatchMessage equ DispatchMessageW
   ELSE
-    DispatchMessage equ <__imp_DispatchMessageA>
+    DispatchMessage equ DispatchMessageA
   ENDIF
 
-externdef __imp_GetDesktopWindow:PPROC
-GetDesktopWindow equ <__imp_GetDesktopWindow>
+externdef GetDesktopWindow:PROC
 
-externdef __imp_GetWindowRect:PPROC
-GetWindowRect equ <__imp_GetWindowRect>
+externdef GetWindowRect:PROC
 
-externdef __imp_GetMessageA:PPROC
-GetMessageA equ <__imp_GetMessageA>
-externdef __imp_GetMessageW:PPROC
-GetMessageW equ <__imp_GetMessageW>
+externdef GetMessageA:PROC
+externdef GetMessageW:PROC
   IFDEF __UNICODE__
-    GetMessage equ <__imp_GetMessageW>
+    GetMessage equ GetMessageW
   ELSE
-    GetMessage equ <__imp_GetMessageA>
+    GetMessage equ GetMessageA
   ENDIF
 
-externdef __imp_MessageBoxA:PPROC
-MessageBoxA equ <__imp_MessageBoxA>
-externdef __imp_MessageBoxW:PPROC
-MessageBoxW equ <__imp_MessageBoxW>
+externdef MessageBoxA:PROTO
+externdef MessageBoxW:PROTO
   IFDEF __UNICODE__
-    MessageBox equ <__imp_MessageBoxW>
+    MessageBox equ MessageBoxW
   ELSE
-    MessageBox equ <__imp_MessageBoxA>
+    MessageBox equ MessageBoxA
   ENDIF
 
-externdef __imp_MonitorFromPoint:PPROC
-MonitorFromPoint equ <__imp_MonitorFromPoint>
+externdef MonitorFromPoint:PROC
 
-externdef __imp_MoveWindow:PPROC
-MoveWindow equ <__imp_MoveWindow>
+externdef MoveWindow:PROC
 
-externdef __imp_MsgWaitForMultipleObjects:PPROC
-MsgWaitForMultipleObjects equ <__imp_MsgWaitForMultipleObjects>
+externdef MsgWaitForMultipleObjects:PROC
 
-externdef __imp_MsgWaitForMultipleObjectsEx:PPROC
-MsgWaitForMultipleObjectsEx equ <__imp_MsgWaitForMultipleObjectsEx>
+externdef MsgWaitForMultipleObjectsEx:PROC
 
-externdef __imp_PeekMessageA:PPROC
-PeekMessageA equ <__imp_PeekMessageA>
-externdef __imp_PeekMessageW:PPROC
-PeekMessageW equ <__imp_PeekMessageW>
+externdef PeekMessageA:PROC
+externdef PeekMessageW:PROC
   IFDEF __UNICODE__
-    PeekMessage equ <__imp_PeekMessageW>
+    PeekMessage equ PeekMessageW
   ELSE
-    PeekMessage equ <__imp_PeekMessageA>
+    PeekMessage equ PeekMessageA
   ENDIF
 
-externdef __imp_PostQuitMessage:PPROC
-PostQuitMessage equ <__imp_PostQuitMessage>
+externdef PostQuitMessage:PROC
 
-externdef __imp_RegisterClassExA:PPROC
-RegisterClassExA equ <__imp_RegisterClassExA>
-externdef __imp_RegisterClassExW:PPROC
-RegisterClassExW equ <__imp_RegisterClassExW>
+externdef RegisterClassExA:PROC
+externdef RegisterClassExW:PROC
   IFDEF __UNICODE__
-    RegisterClassEx equ <__imp_RegisterClassExW>
+    RegisterClassEx equ RegisterClassExW
   ELSE
-    RegisterClassEx equ <__imp_RegisterClassExA>
+    RegisterClassEx equ RegisterClassExA
   ENDIF
 
-externdef __imp_ReleaseDC:PPROC
-ReleaseDC equ <__imp_ReleaseDC>
+externdef ReleaseDC:PROC
 
-externdef __imp_SetTimer:PPROC
-SetTimer equ <__imp_SetTimer>
+externdef SetTimer:PROC
 
-externdef __imp_SetWindowPos:PPROC
-SetWindowPos equ <__imp_SetWindowPos>
+externdef SetWindowPos:PROC
 
-externdef __imp_TranslateMessage:PPROC
-TranslateMessage equ <__imp_TranslateMessage>
+externdef TranslateMessage:PROC
 
-externdef __imp_TranslateMessageEx:PPROC
-TranslateMessageEx equ <__imp_TranslateMessageEx>
+externdef TranslateMessageEx:PROC
 
-externdef __imp_UnregisterClassA:PPROC
-UnregisterClassA equ <__imp_UnregisterClassA>
-externdef __imp_UnregisterClassW:PPROC
-UnregisterClassW equ <__imp_UnregisterClassW>
+externdef UnregisterClassA:PROC
+externdef UnregisterClassW:PROC
   IFDEF __UNICODE__
-    UnregisterClass equ <__imp_UnregisterClassW>
+    UnregisterClass equ UnregisterClassW
   ELSE
-    UnregisterClass equ <__imp_UnregisterClassA>
+    UnregisterClass equ UnregisterClassA
   ENDIF
 
-externdef __imp_UpdateLayeredWindow:PPROC
-UpdateLayeredWindow equ <__imp_UpdateLayeredWindow>
+externdef UpdateLayeredWindow:PROC
 
 
 ; Kernel32.lib
-externdef __imp_CreateEventA:PPROC
-externdef __imp_CreateEventW:PPROC
-CreateEventW equ <__imp_CreateEventW>
+externdef CreateEventA:PROC
+externdef CreateEventW:PROC
   IFDEF __UNICODE__
-    CreateEvent equ <__imp_CreateEventW>
+    CreateEvent equ CreateEventW
   ELSE
-    CreateEvent equ <__imp_CreateEventA>
+    CreateEvent equ CreateEventA
   ENDIF
 
-externdef __imp_GetLastError:PPROC
-GetLastError equ <__imp_GetLastError>
+externdef GetLastError:PROC
 
-externdef __imp_GetProcessId:PPROC
-GetProcessId equ <__imp_GetProcessId>
+externdef GetProcessId:PROC
 
-externdef __imp_SetLastError:PPROC
-SetLastError equ <__imp_SetLastError>
+externdef SetLastError:PROC
 
-externdef __imp_SetProcessId:PPROC
-SetProcessId equ <__imp_SetProcessId>
+externdef SetProcessId:PROC
 
 
 ; Ole32.lib
-externdef __imp_CoInitializeEx:PPROC
-CoInitializeEx equ <__imp_CoInitializeEx>
+externdef CoInitializeEx:PROC
 
-externdef __imp_CoUninitialize:PPROC
-CoUninitialize equ <__imp_CoUninitialize>
+externdef CoUninitialize:PROC
 
 
 ; gdi32.lib
-externdef __imp_CreateCompatibleDC:PPROC
-CreateCompatibleDC equ <__imp_CreateCompatibleDC>
+externdef CreateCompatibleDC:PROC
 
-externdef __imp_DeleteDC:PPROC
-DeleteDC equ <__imp_DeleteDC>
+externdef DeleteDC:PROC
 
-externdef __imp_DeleteObject:PPROC
-DeleteObject equ <__imp_DeleteObject>
+externdef DeleteObject:PROC
 
-externdef __imp_GdiReleaseDC:PPROC
-GdiReleaseDC equ <__imp_GdiReleaseDC>
+externdef GdiReleaseDC:PROC
 
-externdef __imp_GetMonitorInfoA:PPROC
-GetMonitorInfoA equ <__imp_GetMonitorInfoA>
-externdef __imp_GetMonitorInfoW:PPROC
-GetMonitorInfoW equ <__imp_GetMonitorInfoW>
+externdef GetMonitorInfoA:PROC
+externdef GetMonitorInfoW:PROC
   IFDEF __UNICODE__
-    GetMonitorInfo equ <__imp_GetMonitorInfoW>
+    GetMonitorInfo equ GetMonitorInfoW
   ELSE
-    GetMonitorInfo equ <__imp_GetMonitorInfoA>
+    GetMonitorInfo equ GetMonitorInfoA
   ENDIF
 
-externdef __imp_GetObjectA:PPROC
-GetObjectA equ <__imp_GetObjectA>
-externdef __imp_GetObjectW:PPROC
-GetObjectW equ <__imp_GetObjectW>
+externdef GetObjectA:PROC
+externdef GetObjectW:PROC
   IFDEF __UNICODE__
-    GetObject equ <__imp_GetObjectW>
+    GetObject equ GetObjectW
   ELSE
-    GetObject equ <__imp_GetObjectA>
+    GetObject equ GetObjectA
   ENDIF
 
-externdef __imp_SelectObject:PPROC
-SelectObject equ <__imp_SelectObject>
+externdef SelectObject:PROC
+
 
 ; gdiplus.lib
+externdef GdipCreateBitmapFromFile:PROC
 
-externdef __imp_GdipCreateBitmapFromFile:PPROC
-GdipCreateBitmapFromFile equ <__imp_GdipCreateBitmapFromFile>
+externdef GdipCreateBitmapFromScan0:PROC
 
-externdef __imp_GdipCreateBitmapFromScan0:PPROC
-GdipCreateBitmapFromScan0 equ <__imp_GdipCreateBitmapFromScan0>
+externdef GdipCreateHBITMAPFromBitmap:PROC
 
-externdef __imp_GdipCreateHBITMAPFromBitmap:PPROC
-GdipCreateHBITMAPFromBitmap equ <__imp_GdipCreateHBITMAPFromBitmap>
+externdef GdipFillRectangleI:PROC
 
-externdef __imp_GdipFillRectangleI:PPROC
-GdipFillRectangleI equ <__imp_GdipFillRectangleI>
+externdef GdipFree:PROC
 
-externdef __imp_GdipFree:PPROC
-GdipFree equ <__imp_GdipFree>
+externdef GdipCreateSolidFill:PROC
 
-externdef __imp_GdipCreateSolidFill:PPROC
-GdipCreateSolidFill equ <__imp_GdipCreateSolidFill>
+externdef GdipDisposeImage:PROC
 
-externdef __imp_GdipDisposeImage:PPROC
-GdipDisposeImage equ <__imp_GdipDisposeImage>
+externdef GdipGetImageGraphicsContext:PROC
 
-externdef __imp_GdipGetImageGraphicsContext:PPROC
-GdipGetImageGraphicsContext equ <__imp_GdipGetImageGraphicsContext>
+externdef GdiplusShutdown:PROC
 
-externdef __imp_GdiplusShutdown:PPROC
-GdiplusShutdown equ <__imp_GdiplusShutdown>
+externdef GdiplusStartup:PROC
 
-externdef __imp_GdiplusStartup:PPROC
-GdiplusStartup equ <__imp_GdiplusStartup>
 
 ; Kernel32.lib
-externdef __imp_CreateProcessA:PPROC
-CreateProcessA equ <__imp_CreateProcessA>
-externdef __imp_CreateProcessW:PPROC
-CreateProcessW equ <__imp_CreateProcessW>
+externdef CreateProcessA:PROC
+externdef CreateProcessW:PROC
   IFDEF __UNICODE__
-    CreateProcess equ <__imp_CreateProcessW>
+    CreateProcess equ CreateProcessW
   ELSE
-    CreateProcess equ <__imp_CreateProcessA>
+    CreateProcess equ CreateProcessA
   ENDIF
 
-externdef __imp_GetCommandLineA:PPROC
-GetCommandLineA equ <__imp_GetCommandLineA>
-externdef __imp_GetCommandLineW:PPROC
-GetCommandLineW equ <__imp_GetCommandLineW>
+externdef GetCommandLineA:PROC
+externdef GetCommandLineW:PROC
   IFDEF __UNICODE__
-    GetCommandLine equ <__imp_GetCommandLineW>
+    GetCommandLine equ GetCommandLineW
   ELSE
-    GetCommandLine equ <__imp_GetCommandLineA>
+    GetCommandLine equ GetCommandLineA
   ENDIF
 
-externdef __imp_GetModuleHandleA:PPROC
-GetModuleHandleA equ <__imp_GetModuleHandleA>
-externdef __imp_GetModuleHandleW:PPROC
-GetModuleHandleW equ <__imp_GetModuleHandleW>
+externdef GetModuleHandleA:PROC
+externdef GetModuleHandleW:PROC
   IFDEF __UNICODE__
-    GetModuleHandle equ <__imp_GetModuleHandleW>
+    GetModuleHandle equ GetModuleHandleW
   ELSE
-    GetModuleHandle equ <__imp_GetModuleHandleA>
+    GetModuleHandle equ GetModuleHandleA
   ENDIF
 
-externdef __imp_GetModuleFileNameA:PPROC
-GetModuleFileNameA equ <__imp_GetModuleFileNameA>
-externdef __imp_GetModuleFileNameW:PPROC
-GetModuleFileNameW equ <__imp_GetModuleFileNameW>
+externdef GetModuleFileNameA:PROC
+externdef GetModuleFileNameW:PROC
   IFDEF __UNICODE__
-    GetModuleFileName equ <__imp_GetModuleFileNameW>
+    GetModuleFileName equ GetModuleFileNameW
   ELSE
-    GetModuleFileName equ <__imp_GetModuleFileNameA>
+    GetModuleFileName equ GetModuleFileNameA
   ENDIF
 
-externdef __imp_GetTickCount:PPROC
-GetTickCount equ <__imp_GetTickCount>
+externdef GetTickCount:PROC
 
-externdef __imp_ExitProcess:PPROC
-ExitProcess equ <__imp_ExitProcess>
+externdef ExitProcess:PROC
 
-externdef __imp_GetFileAttributesA:PPROC
-GetFileAttributesA equ <__imp_GetFileAttributesA>
-externdef __imp_GetFileAttributesW:PPROC
-GetFileAttributesW equ <__imp_GetFileAttributesW>
+externdef GetFileAttributesA:PROC
+externdef GetFileAttributesW:PROC
   IFDEF __UNICODE__
-    GetFileAttributes equ <__imp_GetFileAttributesW>
+    GetFileAttributes equ GetFileAttributesW
   ELSE
-    GetFileAttributes equ <__imp_GetFileAttributesA>
+    GetFileAttributes equ GetFileAttributesA
   ENDIF
 
+externdef GetProcessHeap:PROC
 
-externdef __imp_GetProcessHeap:PPROC
-GetProcessHeap equ <__imp_GetProcessHeap>
+externdef HeapAlloc:PROC
 
-externdef __imp_HeapAlloc:PPROC
-HeapAlloc equ <__imp_HeapAlloc>
+externdef HeapFree:PROC
 
-externdef __imp_HeapFree:PPROC
-HeapFree equ <__imp_HeapFree>
+externdef CloseHandle:PROC
 
-externdef __imp_CloseHandle:PPROC
-CloseHandle equ <__imp_CloseHandle>
+externdef GlobalFree:PROC
 
-externdef __imp_GlobalFree:PPROC
-GlobalFree equ <__imp_GlobalFree>
-
-externdef __imp_CreateFileA:PPROC
-externdef __imp_CreateFileW:PPROC
-CreateFileW equ <__imp_CreateFileW>
+externdef CreateFileA:PROC
+externdef CreateFileW:PROC
   IFDEF __UNICODE__
-    CreateFile equ <__imp_CreateFileW>
+    CreateFile equ CreateFileW
   ELSE
-    CreateFile equ <__imp_CreateFileA>
+    CreateFile equ CreateFileA
   ENDIF
 
-externdef __imp_GetFileSizeEx:PPROC
-GetFileSizeEx equ <__imp_GetFileSizeEx>
+externdef GetFileSizeEx:PROC
 
-externdef __imp_GlobalAlloc:PPROC
-GlobalAlloc equ <__imp_GlobalAlloc>
+externdef GlobalAlloc:PROC
 
-externdef __imp_GlobalLock:PPROC
-GlobalLock equ <__imp_GlobalLock>
+externdef GlobalLock:PROC
 
-externdef __imp_ReadFile:PPROC
-ReadFile equ <__imp_ReadFile>
+externdef ReadFile:PROC
 
-externdef __imp_GlobalUnlock:PPROC
-GlobalUnlock equ <__imp_GlobalUnlock>
+externdef GlobalUnlock:PROC
 
-externdef __imp_MultiByteToWideChar:PPROC
-MultiByteToWideChar equ <__imp_MultiByteToWideChar>
+externdef MultiByteToWideChar:PROC
+
 
 ; shlwapi.lib
-externdef __imp_PathRemoveFileSpecA:PPROC
-PathRemoveFileSpecA equ <__imp_PathRemoveFileSpecA>
-externdef __imp_PathRemoveFileSpecW:PPROC
-PathRemoveFileSpecW equ <__imp_PathRemoveFileSpecW>
+externdef PathRemoveFileSpecA:PROC
+externdef PathRemoveFileSpecW:PROC
   IFDEF __UNICODE__
-    PathRemoveFileSpec equ <__imp_PathRemoveFileSpecW>
+    PathRemoveFileSpec equ PathRemoveFileSpecW
   ELSE
-    PathRemoveFileSpec equ <__imp_PathRemoveFileSpecA>
+    PathRemoveFileSpec equ PathRemoveFileSpecA
   ENDIF
 
-externdef __imp_PathCombineA:PPROC
-PathCombineA equ <__imp_PathCombineA>
-externdef __imp_PathCombineW:PPROC
-PathCombineW equ <__imp_PathCombineW>
+externdef PathCombineA:PROC
+externdef PathCombineW:PROC
   IFDEF __UNICODE__
-    PathCombine equ <__imp_PathCombineW>
+    PathCombine equ PathCombineW
   ELSE
-    PathCombine equ <__imp_PathCombineA>
+    PathCombine equ PathCombineA
   ENDIF

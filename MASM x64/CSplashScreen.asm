@@ -23,10 +23,10 @@ _CSplashScreen_ equ 1
 	CSplashScreen STRUCT
 		Destructor				QWORD	?
 		Show					QWORD	?
-		RegisterWindowClass		QWORD	?
-		UnregisterWindowClass	QWORD	?
-		CreateBitmapImage		QWORD	?
-		lpModuleName			LPCSTR	?
+		;RegisterWindowClass		QWORD	?
+		;UnregisterWindowClass	QWORD	?
+		;CreateBitmapImage		QWORD	?
+		hModuleHandle			HMODULE	?
 		lpszImagePath			QWORD	?
 		lpszAppPath				QWORD	?
 		intFadeOutTime			DWORD	?
@@ -39,9 +39,9 @@ _CSplashScreen_ equ 1
 	CSplashScreen_initdata LABEL BYTE
 		QWORD OFFSET CSplashScreen_Destructor
 		QWORD OFFSET CSplashScreen_Show
-		QWORD OFFSET CSplashScreen_RegisterWindowClass
-		QWORD OFFSET CSplashScreen_UnregisterWindowClass
-		QWORD OFFSET CSplashScreen_CreateBitmapImage
+		;QWORD OFFSET CSplashScreen_RegisterWindowClass
+		;QWORD OFFSET CSplashScreen_UnregisterWindowClass
+		;QWORD OFFSET CSplashScreen_CreateBitmapImage
 		QWORD	0, 0, 0
 		DWORD	0, 0, 0
 	CSplashScreen_initend equ $-CSplashScreen_initdata
@@ -84,7 +84,7 @@ CSplashScreen_Init PROC uses rcx rsi rdi lpTHIS:QWORD, hInstance:QWORD, strImage
 	mov  rdi, lpTHIS
 
 		mov rax, hInstance
-		mov (CSplashScreen PTR [rdi]).lpModuleName, rax
+		mov (CSplashScreen PTR [rdi]).hModuleHandle, rax
 		mov rax, strImage
 		mov (CSplashScreen PTR [rdi]).lpszImagePath, rax
 		mov rax, strApp
@@ -92,13 +92,13 @@ CSplashScreen_Init PROC uses rcx rsi rdi lpTHIS:QWORD, hInstance:QWORD, strImage
 		mov eax, intFadeOutTime
 		mov (CSplashScreen PTR [rdi]).intFadeOutTime, eax
 		mov (CSplashScreen PTR [rdi]).intFadeOutEnd, 0
-	
+
 		;Initialize blend member with zeroes
 	    mov     rcx, sizeof BLENDFUNCTION
 	    xor     rax, rax
 	    lea     rdi, (CSplashScreen PTR [rdi]).blend
 	    rep stosb
-	
+
 	ret
 CSplashScreen_Init ENDP
 
@@ -113,7 +113,7 @@ CSplashScreen_Destructor ENDP
 
 
 ;--------------------------------------------------------
-CSplashScreen_Show PROC uses rdi lpTHIS:QWORD
+CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
@@ -265,7 +265,7 @@ CSplashScreen_Show ENDP
 ; Returns: EAX = sum, and the status flags (Carry, ; Overflow, etc.) are changed.
 ; Requires: nothing
 ;---------------------------------------------------------
-CSplashScreen_CreateBitmapImage PROC uses rdi lpTHIS:QWORD
+CSplashScreen_CreateBitmapImage PROC uses rdi r15 lpTHIS:QWORD
 
 	;LOCAL hGdiImage :DWORD
 	;LOCAL wbuffer :DWORD
@@ -367,7 +367,7 @@ CSplashScreen_CreateBitmapImage ENDP
 ; --=====================================================================================--
 ; Registers a window class for the splash and splash owner windows.
 ; --=====================================================================================--
-CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
+CSplashScreen_RegisterWindowClass PROC uses rdi r15 lpTHIS:QWORD
 	; https://gist.github.com/DrFrankenstein/9810bbf5cad98b110281
 	LOCAL   wc: WNDCLASSEX
 
@@ -391,7 +391,7 @@ CSplashScreen_RegisterWindowClass PROC uses rdi lpTHIS:QWORD
 	mov		wc.cbSize, sizeof WNDCLASSEX
 	lea rcx, DefWindowProc
 	mov     wc.lpfnWndProc, rcx	; http://masm32.com/board/index.php?topic=2469.0
-    mov rcx, (CSplashScreen PTR [rdi]).lpModuleName
+    mov rcx, (CSplashScreen PTR [rdi]).hModuleHandle
 	mov     wc.hInstance, rcx
 	mov rcx, offset strClassName
     mov     wc.lpszClassName, rcx
@@ -405,7 +405,7 @@ CSplashScreen_RegisterWindowClass ENDP
 ; --=====================================================================================--
 ; Registers a window class for the splash and splash owner windows.
 ; --=====================================================================================--
-CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
+CSplashScreen_UnregisterWindowClass PROC uses rdi r15 lpTHIS:QWORD
 	mov r15, rsp
 	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
@@ -413,7 +413,7 @@ CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
 	mov rdi, lpTHIS
 
 	;invoke GetModuleHandle, 0
-	mov rdx, (CSplashScreen PTR [rdi]).lpModuleName
+	mov rdx, (CSplashScreen PTR [rdi]).hModuleHandle
 	mov rcx, OFFSET strClassName
 	call UnregisterClass		; invoke UnregisterClass, OFFSET strClassName, (CSplashScreen PTR [rdi]).lpModuleName
 
@@ -422,7 +422,7 @@ CSplashScreen_UnregisterWindowClass PROC uses rdi lpTHIS:QWORD
 CSplashScreen_UnregisterWindowClass ENDP
 
 
-CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
+CSplashScreen_CreateSplashWindow PROC uses rdi r15 lpTHIS:QWORD
 	mov r15, rsp
 	sub rsp, 8 * 12	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
@@ -435,7 +435,7 @@ CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
 	;rep stos    dword ptr [rdi] 
 
 	mov QWORD PTR [rsp+88], NULL
-	mov r9, (CSplashScreen PTR [rdi]).lpModuleName
+	mov r9, (CSplashScreen PTR [rdi]).hModuleHandle
 	mov QWORD PTR [rsp+80], r9
 	mov QWORD PTR [rsp+72], NULL
 	mov QWORD PTR [rsp+64], NULL
@@ -455,7 +455,7 @@ CSplashScreen_CreateSplashWindow PROC uses rdi lpTHIS:QWORD
 	ret
 CSplashScreen_CreateSplashWindow ENDP
 
-CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSplash:HBITMAP
+CSplashScreen_SetSplashImage PROC uses rdi r15 lpTHIS:QWORD, hwndSplash:HWND, hbmpSplash:HBITMAP
 	LOCAL bm :BITMAP			; defined in wingdi.h
 	LOCAL ptZero :POINT			; defined in windef.h
 	LOCAL ptOrigin :POINT		; defined in windef.h
@@ -580,7 +580,7 @@ CSplashScreen_SetSplashImage PROC uses rdi lpTHIS:QWORD, hwndSplash:HWND, hbmpSp
 	ret
 CSplashScreen_SetSplashImage ENDP
 
-CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
+CSplashScreen_LaunchApplication PROC uses rdi r15 lpTHIS:QWORD
 	LOCAL szCurrentFolder[MAX_PATH]:WORD
 	LOCAL szApplicationPath[MAX_PATH]:WORD
 	LOCAL startupinfo:STARTUPINFO
@@ -655,7 +655,7 @@ CSplashScreen_LaunchApplication PROC uses rdi lpTHIS:QWORD
 	ret
 CSplashScreen_LaunchApplication ENDP
 
-CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
+CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
 	LOCAL dwStartTickCount	:DWORD
 	LOCAL dwElapsed			:DWORD
 	LOCAL dwTimeOut			:DWORD
@@ -811,7 +811,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi lpTHIS:QWORD, hwnd
 	ret
 CSplashScreen_PumpMsgWaitForMultipleObjects ENDP
 
-CSplashScreen_FadeWindowOut PROC uses rdi lpTHIS:QWORD, hWindow:HWND, hdcScreen:HDC
+CSplashScreen_FadeWindowOut PROC uses rdi r15 lpTHIS:QWORD, hWindow:HWND, hdcScreen:HDC
 	LOCAL dtNow:DWORD
 	;LOCAL cte:DWORD
 	;LOCAL result:DWORD

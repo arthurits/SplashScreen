@@ -39,7 +39,7 @@ include CSplashScreen.asm
 	file			QWORD	NULL
 	splash			QWORD	NULL
 	nFadeoutTime	QWORD	NULL
-	lpModuleName	LPCSTR	NULL
+	hModuleHandle	QWORD	NULL
 	lpszImagePath	LPCTSTR	NULL
 	lpszPrefix		LPCTSTR	NULL
 	lpszAppFileName	LPCTSTR	NULL
@@ -52,7 +52,7 @@ main proc
 	; Get the current handle
 	mov rcx, NULL
 	call GetModuleHandle
-	mov lpModuleName, rax
+	mov hModuleHandle, rax
 	cmp rax, NULL
 	je exit_main
 
@@ -79,17 +79,17 @@ main proc
 	mov r8, SIZEOF CFile 
 	call HeapAlloc
 	mov file, rax
-	mov QWORD PTR [rsp], rax	; move rax to the first shallow space
+	mov rbx, rax
+	mov QWORD PTR [rsp], rbx	; move rax to the first shallow space
 	call CFile_Init
 	; pop rax	; Not necessary!
 
 	mov rcx, offset fileName
 	mov QWORD PTR [rsp+8], rcx	; 2nd argument, move rcx to the 2nd shallow space
 	;mov QWORD PTR [rsp], rax	; move rax to the first shallow space
-	call CFile_OpenFile
+	call (CFile PTR [rbx]).OpenFile
 	; add rsp, 16	; Not necessary!
 
-	mov rbx, file
 	mov QWORD PTR [rsp], rbx	; move rbx to the first shallow space
 	call (CFile PTR [rbx]).ConvertToLine	;	invoke (CFile PTR [eax]).OpenFile, eax
 	;lea rsp, [rsp+8]	; add rsp, 8
@@ -143,7 +143,7 @@ main proc
 	mov QWORD PTR [rsp+24], rax	; 4th argument
 	mov rax, lpszImagePath
 	mov QWORD PTR [rsp+16], rax	; 3rd argument
-	mov rax, lpModuleName
+	mov rax, hModuleHandle
 	mov QWORD PTR [rsp+8], rax	; 2nd argument
 	mov QWORD PTR [rsp], rbx	; THIS pointer
 	call CSplashScreen_Init

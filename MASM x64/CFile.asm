@@ -126,7 +126,7 @@ CFile_Init ENDP
 ; --=====================================================================================--
 ; destructor METHOD BEHAVIOR
 ; --=====================================================================================--
-CFile_Destructor PROC uses rdi lpTHIS:QWORD 
+CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD 
 	; Stack alignment
 	mov r15, rsp
 	sub rsp, 8*4	; Shallow space for Win32 API x64 calls
@@ -152,7 +152,7 @@ CFile_Destructor PROC uses rdi lpTHIS:QWORD
 CFile_Destructor ENDP
 
 ;--------------------------------------------------------
-CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
+CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
 ; Receives: EAX, EBX, ECX, the three integers. May be
@@ -164,7 +164,7 @@ CFile_OpenFile PROC uses rdi lpTHIS:QWORD, lpszFileName:QWORD
 	LOCAL lpGLOBAL: QWORD
 	
 	mov r15, rsp
-	sub rsp, 8*4	; Shallow space for Win32 API x64 calls
+	sub rsp, 8*7	; Shallow space for Win32 API x64 calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 
