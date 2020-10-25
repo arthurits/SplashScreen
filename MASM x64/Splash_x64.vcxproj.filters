@@ -9,7 +9,6 @@
     <MASM Include="VariableDefinitions.asm" />
     <MASM Include="CFile.asm" />
     <MASM Include="CSplashScreen.asm" />
-    <MASM Include="FunctionProtos-Masm32SDK.asm" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources.rc" />
