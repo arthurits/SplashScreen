@@ -81,8 +81,8 @@ MEMSIZE equ 65535
 .data 
 ;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\prueba.txt",0
 ;UCSTR fileName, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba2.txt",0
-;UCSTR fileName, "C:\Users\alfredoa\source\repos\SplashScreen\MASM x86\Debug\settings.txt",0
-UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
+UCSTR fileName, "C:\Users\alfredoa\source\repos\SplashScreen\MASM x86\Debug\settings.txt",0
+;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
 	;UCSTR fileName, "settings.txt",0
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
 	ErrorApp BYTE "Could not find the file in the following path:", 13, 10, 0

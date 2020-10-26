@@ -540,10 +540,10 @@ CSplashScreen_SetSplashImage PROC uses rdi r15 lpTHIS:QWORD, hwndSplash:HWND, hb
 	mov blend.AlphaFormat, AC_SRC_ALPHA	; 0x01
 
 	; Paint the window (in the right location) with the alpha-blended bitmap
-	mov QWORD PTR [rsp+64], ULW_ALPHA
+	mov DWORD PTR [rsp+64], ULW_ALPHA
 	lea r9, blend
 	mov QWORD PTR [rsp+56], r9
-	mov QWORD PTR [rsp+48], 000000000h
+	mov DWORD PTR [rsp+48], 000000000h
 	lea r9, ptZero
 	mov QWORD PTR [rsp+40], r9
 	lea r9, hdcMem
