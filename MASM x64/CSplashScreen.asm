@@ -183,17 +183,16 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 	cmp rax, NULL	; .IF (hBitmap!=NULL)
 	je exit_Show		; if hBitmap==0 then exit
 		; if hBitmap exists, then create the splash window and set the bitmap image
-		;mov QWORD PTR [rsp], rdi
+		;mov QWORD PTR [rsp], rdi			; 1st argument. Not necessary, it's already there
 		call CSplashScreen_RegisterWindowClass
-		;mov QWORD PTR [rsp], rdi
+		;mov QWORD PTR [rsp], rdi			; 1st argument. Not necessary, it's already there
 		call CSplashScreen_CreateSplashWindow
 		mov hSplashWnd, rax
-		mov rcx, rax
 		
+		mov QWORD PTR [rsp + 8], rax		; 2nd argument
 		mov rax, hBmp
-		mov QWORD PTR [rsp + 16], rax		; 3rd argument
-		mov QWORD PTR [rsp + 8], rcx		; 2nd argument
-		; mov QWORD PTR [rsp], rdi			; Not necessary, it's already there
+		mov QWORD PTR [rsp + 16], rax		; 3rd argument	
+		; mov QWORD PTR [rsp], rdi			; 1st argument. Not necessary, it's already there
 		call CSplashScreen_SetSplashImage	; returns rax=0 if unsuccessful
 
 	cmp rax, NULL	; .IF (rax!=0)
@@ -201,6 +200,8 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 		; if file exists, then launch the application
 		; mov QWORD [rsp], rdi					; Not necessary, it's already there
 		call CSplashScreen_LaunchApplication	; Returns the handle of the launched application in rax
+		cmp rax, NULL
+		je exit_Show
 
 		mov rbx, rax	; Handle of the launched application
 		mov rcx, rax
@@ -428,11 +429,6 @@ CSplashScreen_CreateSplashWindow PROC uses rdi r15 lpTHIS:QWORD
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov  rdi, lpTHIS
-	
-	;mov         rdi,rsp  
-	;mov         ecx,18h  
-	;mov         eax,0CCCCCCCCh  
-	;rep stos    dword ptr [rdi] 
 
 	mov QWORD PTR [rsp+88], NULL
 	mov r9, (CSplashScreen PTR [rdi]).hModuleHandle
@@ -466,7 +462,7 @@ CSplashScreen_SetSplashImage PROC uses rdi r15 lpTHIS:QWORD, hwndSplash:HWND, hb
 	LOCAL hdcScreen :HDC	; defined in
 	LOCAL hdcMem :HDC		; defined in
 	LOCAL hbmpOld :HBITMAP	; defined in
-	LOCAL blend :BLENDFUNCTION	; defined in wingdi.h
+	;LOCAL blend :BLENDFUNCTION	; defined in wingdi.h
 
 	; Initialize structs
 	mov ptZero.x, 0
@@ -534,19 +530,20 @@ CSplashScreen_SetSplashImage PROC uses rdi r15 lpTHIS:QWORD, hwndSplash:HWND, hb
 	mov hbmpOld, rax
 	
 	; Use the source image's alpha channel for blending
-	mov blend.BlendOp, AC_SRC_OVER		; 0x00
-	mov blend.BlendFlags, 0				; 0x00
-	mov blend.SourceConstantAlpha, 255	; 0xFF
-	mov blend.AlphaFormat, AC_SRC_ALPHA	; 0x01
+	;lea r9, (CSplashScreen PTR [rdi]).blend
+	mov (CSplashScreen PTR [rdi]).blend.BlendOp, AC_SRC_OVER		; 0x00
+	mov (CSplashScreen PTR [rdi]).blend.BlendFlags, 0				; 0x00
+	mov (CSplashScreen PTR [rdi]).blend.SourceConstantAlpha, 255	; 0xFF
+	mov (CSplashScreen PTR [rdi]).blend.AlphaFormat, AC_SRC_ALPHA	; 0x01
 
 	; Paint the window (in the right location) with the alpha-blended bitmap
 	mov DWORD PTR [rsp+64], ULW_ALPHA
-	lea r9, blend
+	lea r9, (CSplashScreen PTR [rdi]).blend
 	mov QWORD PTR [rsp+56], r9
 	mov DWORD PTR [rsp+48], 000000000h
 	lea r9, ptZero
 	mov QWORD PTR [rsp+40], r9
-	lea r9, hdcMem
+	mov r9, hdcMem
 	mov QWORD PTR [rsp+32], r9
 	lea r9, sizeSplash
 	lea r8, ptOrigin
@@ -564,7 +561,7 @@ CSplashScreen_SetSplashImage PROC uses rdi r15 lpTHIS:QWORD, hwndSplash:HWND, hb
 		mov rcx, NULL
 		call ReleaseDC			; invoke ReleaseDC, NULL, hdcScreen
 
-	; Center the window
+	; Set the splash window in TOPMOST position
 	mov QWORD PTR [rsp+48], SWP_SHOWWINDOW	; window-positioning options (0x0040);
 	mov r9d, sizeSplash.y
 	mov DWORD PTR [rsp+40], r9d				; height
@@ -580,7 +577,7 @@ CSplashScreen_SetSplashImage PROC uses rdi r15 lpTHIS:QWORD, hwndSplash:HWND, hb
 	ret
 CSplashScreen_SetSplashImage ENDP
 
-CSplashScreen_LaunchApplication PROC uses rdi r15 lpTHIS:QWORD
+CSplashScreen_LaunchApplication PROC uses rbx rdi r15 lpTHIS:QWORD
 	LOCAL szCurrentFolder[MAX_PATH]:WORD
 	LOCAL szApplicationPath[MAX_PATH]:WORD
 	LOCAL startupinfo:STARTUPINFO
@@ -611,18 +608,19 @@ CSplashScreen_LaunchApplication PROC uses rdi r15 lpTHIS:QWORD
 	lea rcx, szCurrentFolder
 	call PathRemoveFileSpec		; invoke PathRemoveFileSpec, ADDR szCurrentFolder	; http://masm32.com/board/index.php?topic=3646.0
 
-	mov rax, (CSplashScreen PTR [rdi]).lpszAppPath
+	mov rbx, (CSplashScreen PTR [rdi]).lpszAppPath
 	
 	; Add the application name to the path
-	cmp WORD PTR[rax+2], 58		; .IF (WORD PTR[rax+2]==58 && WORD PTR[rax+4]==92) ; ":" && "\\"
+	cmp WORD PTR[rbx+2], 58		; .IF (WORD PTR[rax+2]==58 && WORD PTR[rax+4]==92) ; ":" && "\\"
 	jne CSplashScreen_LaunchApplication_False_01
-	cmp WORD PTR[rax+4], 92
+	cmp WORD PTR[rbx+4], 92
 	jne CSplashScreen_LaunchApplication_False_01
 	jmp CSplashScreen_LaunchApplication_EndIf_01
 	CSplashScreen_LaunchApplication_False_01:
 		mov r8, (CSplashScreen PTR [rdi]).lpszAppPath
 		lea rdx, szCurrentFolder
-		lea rcx, szApplicationPath
+		lea rbx, szApplicationPath
+		mov rcx, rbx
 		call PathCombine		; invoke PathCombine, ebx, ADDR szCurrentFolder, [rdi].lpszAppPath
 	CSplashScreen_LaunchApplication_EndIf_01:
 
@@ -641,7 +639,7 @@ CSplashScreen_LaunchApplication PROC uses rdi r15 lpTHIS:QWORD
 	mov r9, NULL
 	mov r8, NULL
 	mov rdx, rax
-	lea rcx, szApplicationPath 
+	mov rcx, rbx
 	call CreateProcess			; invoke CreateProcess, ADDR szApplicationPath, CommandLine, NULL, NULL, FALSE, 0, NULL, ADDR szCurrentFolder, ADDR startupinfo, ADDR processinfo
 
 	; Release in order to avoid memory leaks
@@ -886,7 +884,7 @@ CSplashScreen_FadeWindowOut ENDP
 
 
 
-CenterWindow proc hWindow:QWORD
+CenterWindow PROC hWindow:QWORD
 	LOCAL DlgHeight:DWORD 
 	LOCAL DlgWidth:DWORD
 	LOCAL DlgRect:RECT
@@ -924,7 +922,7 @@ CenterWindow proc hWindow:QWORD
 	mov rcx, hWindow				; 1st parameter
 	call MoveWindow
 	ret
-CenterWindow endp
+CenterWindow ENDP
 
 
 WindowProc  PROC ;, hwnd:HWND, uMsg:UINT, wParam:WPARAM, lParam:LPARAM   ; must be naked
@@ -957,4 +955,4 @@ OnPaint	ENDP
 
 
 
-endif
+ENDIF

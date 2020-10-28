@@ -106,7 +106,7 @@ CFile_Init  PROC uses rsi rdi lpTHIS:QWORD
 	cld 
 	
 	; Asign the class methods to pointer lpTHIS
-	mov 	rsi, offset CFile_initdata
+	mov 	rsi, OFFSET CFile_initdata
 	mov 	rdi, lpTHIS
 	mov 	rcx, CFile_initend
 	shr 	rcx, 2
@@ -135,13 +135,13 @@ CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD
 	mov rdi, lpTHIS
 
 	; http://masm32.com/board/index.php?topic=7210.0
-	mov rcx, (CFile ptr[rdi]).hFile
+	mov rcx, (CFile PTR[rdi]).hFile
 	cmp rcx, NULL
 	je next01
 	call CloseHandle
 	
 	next01:
-	mov rcx, (CFile ptr[rdi]).ptrHeapText
+	mov rcx, (CFile PTR[rdi]).ptrHeapText
 	cmp rcx, NULL
 	je next02
 	call GlobalFree
@@ -187,15 +187,15 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	call CreateFile
 	;invoke CreateFile, lpszFileName, GENERIC_READ or GENERIC_WRITE, FILE_SHARE_READ or FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE, NULL 
 	;mov edx, eax
-	mov (CFile ptr[rdi]).hFile, rax
+	mov (CFile PTR[rdi]).hFile, rax
 
-	mov rdx, offset fileSize2
+	mov rdx, OFFSET fileSize2
 	mov rcx, rax
 	call GetFileSizeEx						; invoke GetFileSizeEx, [edi].handle, ADDR fileSize2
 	mov eax, fileSize2.LowPart
 	inc rax									; One byte for the NULL terminated
 	;mov r10, rax
-	mov (CFile ptr[rdi]).bytesRead, rax		; Save the size in the in-memory struct
+	mov (CFile PTR[rdi]).bytesRead, rax		; Save the size in the in-memory struct
 
 	mov rdx, rax
 	mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT	; we set all bytes to 0
@@ -209,30 +209,30 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	lea r9, SizeReadWrite2
 	mov r8d, fileSize2.LowPart
 	mov rdx, rax							; lpGlobal
-	mov rcx, (CFile ptr[rdi]).hFile
+	mov rcx, (CFile PTR[rdi]).hFile
 	call ReadFile							; invoke ReadFile, [edi].handle, lpGLOBAL, fileSize2.LowPart, ADDR SizeReadWrite2, NULL
 	;mov DWORD PTR [ebp-8], eax
-	mov rcx, (CFile ptr[rdi]).hFile
+	mov rcx, (CFile PTR[rdi]).hFile
 	call CloseHandle
 	cmp rax, 0
 	jne end_if
-		mov (CFile ptr[rdi]).hFile, 0
+		mov (CFile PTR[rdi]).hFile, 0
 	end_if:
 
 
 	; Convert text from byte to word (Unicode)
-	mov rdx, (CFile ptr[rdi]).bytesRead
+	mov rdx, (CFile PTR[rdi]).bytesRead
 	shl rdx, 1		;Multiply by 2 in order to convert from char to wchar
 	mov rcx, GMEM_ZEROINIT
 	call GlobalAlloc
 	;invoke GlobalAlloc, GMEM_ZEROINIT, eax
 	;mov pMemoryW,eax
-	mov (CFile ptr[rdi]).ptrHeapText, rax
-	mov (CFile ptr[rdi]).ptrLine, rax
+	mov (CFile PTR[rdi]).ptrHeapText, rax
+	mov (CFile PTR[rdi]).ptrLine, rax
 
 	; Convert byte string to word string
 	mov DWORD PTR [rsp+40], NULL
-	mov rax, (CFile ptr[rdi]).ptrHeapText
+	mov rax, (CFile PTR[rdi]).ptrHeapText
 	mov QWORD PTR [rsp+32], rax
 	mov r9, -1			; since lpGlobal is null-terminated this (the size in bytes) can be set to -1
 	mov r8, lpGLOBAL
@@ -241,7 +241,7 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	call MultiByteToWideChar	; Returns the size, in characters, of the buffer indicated by [rsp+32]
 	;invoke MultiByteToWideChar, CP_UTF8, 0, DWORD PTR [ebp-8], -1, [edi].ptrHeapText, 0
 	mov QWORD PTR [rsp+40], rax
-	mov rax, (CFile ptr[rdi]).ptrHeapText
+	mov rax, (CFile PTR[rdi]).ptrHeapText
 	mov QWORD PTR [rsp+32], rax
 	mov r9, -1
 	mov r8, lpGLOBAL
