@@ -390,7 +390,7 @@ CSplashScreen_SetSplashImage PROC uses edi lpTHIS:DWORD, hwndSplash:HWND, hbmpSp
 	LOCAL hdcScreen :HDC	; defined in
 	LOCAL hdcMem :HDC		; defined in
 	LOCAL hbmpOld :HBITMAP	; defined in
-	LOCAL blend :BLENDFUNCTION	; defined in wingdi.h
+	;LOCAL blend :BLENDFUNCTION	; defined in wingdi.h
 
 	; Initialize structs
 	mov ptZero.x, 0
@@ -443,13 +443,13 @@ CSplashScreen_SetSplashImage PROC uses edi lpTHIS:DWORD, hwndSplash:HWND, hbmpSp
 	mov hbmpOld, eax
 	
 	; Use the source image's alpha channel for blending
-	mov blend.BlendOp, AC_SRC_OVER		; 0x00
-	mov blend.BlendFlags, 0				; 0x00
-	mov blend.SourceConstantAlpha, 255	; 0xFF
-	mov blend.AlphaFormat, AC_SRC_ALPHA	; 0x01
-	; delete comment
+	mov [edi].blend.BlendOp, AC_SRC_OVER		; 0x00
+	mov [edi].blend.BlendFlags, 0				; 0x00
+	mov [edi].blend.SourceConstantAlpha, 255	; 0xFF
+	mov [edi].blend.AlphaFormat, AC_SRC_ALPHA	; 0x01
+	lea eax, [edi].blend
 	; Paint the window (in the right location) with the alpha-blended bitmap
-	invoke UpdateLayeredWindow, hwndSplash, hdcScreen, ADDR ptOrigin, ADDR sizeSplash, hdcMem, ADDR ptZero, 000000000h, ADDR blend, ULW_ALPHA
+	invoke UpdateLayeredWindow, hwndSplash, hdcScreen, ADDR ptOrigin, ADDR sizeSplash, hdcMem, ADDR ptZero, 000000000h, eax, ULW_ALPHA
 
 	; Delete temporary objects
 	invoke SelectObject, hdcMem, hbmpOld

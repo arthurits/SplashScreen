@@ -216,12 +216,12 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 		mov rbx, hCloseSplashWithoutFadeEvent
 		mov QWORD PTR [rax + 16], rbx
 		
-		lea r8, hdcScreen
+		mov r8, hdcScreen
 		mov QWORD PTR [rsp+40], r8
 		mov QWORD PTR [rsp+32], INFINITE
 		mov QWORD PTR [rsp+24], rax
 		mov QWORD PTR [rsp+16], 3
-		lea r8, hSplashWnd
+		mov r8, hSplashWnd
 		mov QWORD PTR [rsp+8], r8
 		mov QWORD PTR [rsp], rdi			; Necessary since Win32 API calls could have modified this shallow space
 		call CSplashScreen_PumpMsgWaitForMultipleObjects	; lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
@@ -676,8 +676,8 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 		sub eax, dwStartTickCount
 		mov dwElapsed, eax
 
-		; If
-		cmp dwMilliseconds, INFINITE	; .IF (dwMilliseconds == INFINITE)
+		; .IF (dwMilliseconds == INFINITE)
+		cmp dwMilliseconds, INFINITE				; .IF
 		jne CSplashScreen_Pump_False_01
 			mov dwTimeOut, INFINITE
 			jmp CSplashScreen_Pump_EndIf_01
@@ -734,12 +734,12 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 				lea rcx, msg
 				call PeekMessage	; invoke PeekMessage, ADDR msg, NULL, 0, 0, PM_REMOVE
 				cmp rax, FALSE
-				jne While_Peek_Start	; execute while eax != FALSE
+				jne While_Peek_Start	; execute while rax != FALSE
 
 		CSplashScreen_Pump_False_03:		; .ELSE
 			; Check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
 			; if the fade event is set then we need to fade out
-			mov QWORD PTR [rsp], QS_ALLINPUT
+			mov QWORD PTR [rsp+32], QS_ALLINPUT
 			mov r9, 0
 			mov r8, FALSE
 			mov rdx, pHandles	; Pointer to the beginning of the array
@@ -752,9 +752,10 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 			cmp rax, WAIT_OBJECT_0				; .IF (eax == WAIT_OBJECT_0)
 			jne CSplashScreen_Pump_EndIf_05
 				; Timeout on actual wait or any other object
-				mov r8, NULL
-				mov rdx, 30
-				mov rcx, 1
+				mov r9, NULL
+				mov r8, 30
+				mov rdx, 1
+				mov rcx, hwndSplash
 				call SetTimer		; invoke SetTimer, hwndSplash, 1, 30, NULL
 				call GetTickCount	; invoke GetTickCount
 				add eax, (CSplashScreen PTR [rdi]).intFadeOutTime
@@ -764,9 +765,9 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 
 				FadeWindow_Start:
 					; If 06
-					cmp eax, -1							; .IF (eax == -1)
+					cmp rax, -1							; .IF (eax == -1)
 						jne CSplashScreen_Pump_False_06
-						; Handle the error and possibly exit
+						jmp exit_PumpMsgWaitForMultipleObjects	; Handle the error and possibly exit
 					CSplashScreen_Pump_False_06:		; .ELSE
 						; If 07
 						cmp msg.message, WM_TIMER			; .IF (msg.message == WM_TIMER)
@@ -824,7 +825,7 @@ CSplashScreen_FadeWindowOut PROC uses rdi r15 lpTHIS:QWORD, hWindow:HWND, hdcScr
 	mov dtNow, eax
 
 	cmp eax, (CSplashScreen PTR [rdi]).intFadeOutEnd	; .IF (eax >= [edi].intFadeOutEnd)
-	jne CSplashScreen_FadeWindowOut_False_01
+	jl CSplashScreen_FadeWindowOut_False_01
 		mov rax, 1		; Return true (we are done with the fade out)
 		jmp CSplashScreen_FadeWindowOut_EndIf_01
 	CSplashScreen_FadeWindowOut_False_01:

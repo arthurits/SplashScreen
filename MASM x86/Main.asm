@@ -255,7 +255,7 @@ StringToInt PROC uses ebx ecx esi lpString:DWORD
 
 	; Loop through each char in string
 	loopString:
-		; Check wether we reached the end of the string
+		; Check whether we reached the end of the string
 		cmp WORD PTR [esi], 0000h
 		je exit_StringToInt
 
