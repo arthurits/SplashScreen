@@ -9,6 +9,7 @@
     <MASM Include="VariableDefinitions.asm" />
     <MASM Include="CFile.asm" />
     <MASM Include="CSplashScreen.asm" />
+    <MASM Include="CString.asm" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources.rc" />

@@ -1,7 +1,3 @@
-ifndef __UNICODE__
-__UNICODE__ equ 1
-endif
-
 ifndef _CSplashScreen_
 _CSplashScreen_ equ 1
 
@@ -74,7 +70,7 @@ CSplashScreen_Init PROC uses rcx rsi rdi lpTHIS:QWORD, hInstance:QWORD, strImage
 	mov 	rsi, OFFSET CSplashScreen_initdata
 	mov 	rdi, lpTHIS
 	mov 	rcx, CSplashScreen_initend
-	shr 	rcx, 2
+	shr 	rcx, 4
 	rep 	movsq
 	mov 	rcx, CSplashScreen_initend
 	and 	rcx, 7
@@ -735,6 +731,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 				call PeekMessage	; invoke PeekMessage, ADDR msg, NULL, 0, 0, PM_REMOVE
 				cmp rax, FALSE
 				jne While_Peek_Start	; execute while rax != FALSE
+				jmp CSplashScreen_Pump_EndIf_03	; End IF
 
 		CSplashScreen_Pump_False_03:		; .ELSE
 			; Check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
@@ -866,7 +863,7 @@ CSplashScreen_FadeWindowOut PROC uses rdi r15 lpTHIS:QWORD, hWindow:HWND, hdcScr
 		;lea r9, (CSplashScreen PTR [rdi]).blend
 		lea r9, (CSplashScreen PTR [rdi]).blend
 		mov QWORD PTR [rsp+56], r9
-		mov QWORD PTR [rsp+48], 000000000h
+		mov DWORD PTR [rsp+48], 000000000h
 		mov QWORD PTR [rsp+40], NULL
 		mov QWORD PTR [rsp+32], NULL
 		mov r9, NULL

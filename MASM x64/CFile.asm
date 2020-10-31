@@ -1,8 +1,3 @@
-
-ifndef __UNICODE__
-__UNICODE__ equ 1
-endif
-
 ifndef _CFile_
 _CFile_ equ 1
 
