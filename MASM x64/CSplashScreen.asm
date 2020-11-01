@@ -214,9 +214,9 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 		
 		mov r8, hdcScreen
 		mov QWORD PTR [rsp+40], r8
-		mov QWORD PTR [rsp+32], INFINITE
+		mov DWORD PTR [rsp+32], INFINITE
 		mov QWORD PTR [rsp+24], rax
-		mov QWORD PTR [rsp+16], 3
+		mov DWORD PTR [rsp+16], LENGTHOF aHandles
 		mov r8, hSplashWnd
 		mov QWORD PTR [rsp+8], r8
 		mov QWORD PTR [rsp], rdi			; Necessary since Win32 API calls could have modified this shallow space
@@ -769,9 +769,11 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 						; If 07
 						cmp msg.message, WM_TIMER			; .IF (msg.message == WM_TIMER)
 						jne CSplashScreen_Pump_EndIf_07
-							mov r8, hdcScreen			; hdcScreen
-							mov rdx, hwndSplash
-							mov rcx, rdi
+							mov rax, hdcScreen
+							mov QWORD PTR [rsp + 16], rax			; hdcScreen
+							mov rax, hwndSplash
+							mov QWORD PTR [rsp + 8], rax
+							mov QWORD PTR [rsp], rdi
 							call CSplashScreen_FadeWindowOut	; FadeWindowOut(hWnd, hdcScreen)
 							cmp rax, 1
 							je CSplashScreen_Pump_EndIf_05
