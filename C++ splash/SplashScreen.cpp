@@ -251,7 +251,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 	// useful variables
 	const DWORD dwStartTickCount = ::GetTickCount();
 
-	// loop until done
+	// loop until done. Other option: while (true)
 	for (;;)
 	{
 		// calculate timeout
@@ -298,12 +298,15 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 				{ 
 					if (bRet == -1)
 					{
-						// handle the error and possibly exit
+						::MessageBox(NULL, _T("Error: function GetMessage returned -1"), _T("Error"), MB_ICONERROR);
 					}
 					else
 					{
+						if (msg.message == WM_QUIT)
+							return dwWaitResult;
 						if (msg.message == WM_TIMER) {
-							if (FadeWindowOut(hWnd, hdcScreen)) { // finished
+							if (FadeWindowOut(hWnd, hdcScreen))
+							{ // finished
 								ReleaseDC(NULL, hdcScreen);
 								return dwWaitResult;
 							}

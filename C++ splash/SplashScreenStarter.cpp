@@ -28,14 +28,18 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	std::basic_string <WCHAR> strFadeoutTime = L"0";
 	std::basic_string <WCHAR> strSuffix = L"";
 	//std::wifstream fin(L"C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
-	std::wifstream fin(L"settings.txt");	// https://stackoverflow.com/questions/19697296/what-is-stdwifstreamgetline-doing-to-my-wchar-t-array-its-treated-like-a-b
+	std::wifstream fin(L"C:\\Users\\alfredoa\\source\\repos\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
+	//std::wifstream fin(L"settings.txt");	// https://stackoverflow.com/questions/19697296/what-is-stdwifstreamgetline-doing-to-my-wchar-t-array-its-treated-like-a-b
 	int nFadeoutTime = 0;
 
 	// If the file couldn't be opened
 	if (!fin)
 	{
 		fin.close();
-		MessageBox(NULL, L"An unexpected error ocurred while reading 'settings.txt'.\nPlease make sure the file and format are correct.", L"Error opening/reading file", MB_ICONERROR);
+		::MessageBox(NULL,
+			_T("An unexpected error ocurred while reading 'settings.txt'.\nPlease make sure the file and format are correct."),
+			_T("Error opening/reading file"),
+			MB_ICONERROR);
 		return 0;
 	}
 
@@ -55,9 +59,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	DWORD dwAttrib = GetFileAttributes(strExecutable.c_str());
 	if (!(dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)))
 	{
-		std::basic_string <WCHAR> message = L"Could not find the file in the following path:\n";
+		std::basic_string <TCHAR> message = _T("Could not find the file in the following path:\n");
 		message += strExecutable;
-		MessageBox(NULL, message.c_str(), L"File does not exist", MB_ICONERROR);
+		MessageBox(NULL, message.c_str(), _T("File does not exist"), MB_ICONERROR);
 		return 0;
 	}
 
@@ -72,17 +76,3 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	// Exit
 	return 0;
 }
-
-
-// in WPF code
-//private void CloseSplashScreen()
-//{
-//    // signal the native process (that launched us) to close the splash screen
-//    using (var closeSplashEvent = new EventWaitHandle(false,
-//        EventResetMode.ManualReset, "CloseSplashScreenEvent"+Prefix))
-//    {
-//        closeSplashEvent.Set();
-//    }
-//}
-
-
