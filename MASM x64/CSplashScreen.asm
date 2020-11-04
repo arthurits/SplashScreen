@@ -673,6 +673,7 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 		mov dwElapsed, eax
 
 		; .IF (dwMilliseconds == INFINITE)
+		; const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE :dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0
 		cmp dwMilliseconds, INFINITE				; .IF
 		jne CSplashScreen_Pump_False_01
 			mov dwTimeOut, INFINITE
@@ -680,12 +681,12 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 		CSplashScreen_Pump_False_01:				; .ELSE
 			cmp eax, dwMilliseconds						; .IF (eax < dwMilliseconds)		; dwElapsed < dwMilliseconds
 			jae CSplashScreen_Pump_False_02
-					mov eax, dwMilliseconds
-					sub eax, dwElapsed
-					mov dwTimeOut, eax
-					jmp CSplashScreen_Pump_EndIf_02
+				mov eax, dwMilliseconds
+				sub eax, dwElapsed
+				mov dwTimeOut, eax
+				jmp CSplashScreen_Pump_EndIf_02
 			CSplashScreen_Pump_False_02:				;.ELSE
-					mov dwTimeOut, 0
+				mov dwTimeOut, 0
 			CSplashScreen_Pump_EndIf_02:				; EndIf
 		CSplashScreen_Pump_EndIf_01:				; EndIf
 
@@ -761,14 +762,20 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 				jmp FadeWindow_Condition
 
 				FadeWindow_Start:
-					; If 06
-					cmp rax, -1							; .IF (eax == -1)
-						jne CSplashScreen_Pump_False_06
-						jmp exit_PumpMsgWaitForMultipleObjects	; Handle the error and possibly exit
+					; If 06: .IF GetMessage( &msg, hWnd, 0, 0 )) == -1
+					cmp rax, -1
+					jne CSplashScreen_Pump_False_06
+						jmp CSplashScreen_Pump_EndIf_05	; Handle the error and possibly exit
 					CSplashScreen_Pump_False_06:		; .ELSE
-						; If 07
-						cmp msg.message, WM_TIMER			; .IF (msg.message == WM_TIMER)
+						; If 08: .IF (msg.message == WM_QUIT)
+						cmp msg.message, WM_CLOSE
 						jne CSplashScreen_Pump_EndIf_07
+							je CSplashScreen_Pump_EndIf_05	
+						CSplashScreen_Pump_EndIf_07:		; .ENDIF
+
+						; If 08: .IF (msg.message == WM_TIMER)
+						cmp msg.message, WM_TIMER			; 
+						jne CSplashScreen_Pump_EndIf_08
 							mov rax, hdcScreen
 							mov QWORD PTR [rsp + 16], rax			; hdcScreen
 							mov rax, hwndSplash
@@ -777,7 +784,8 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 							call CSplashScreen_FadeWindowOut	; FadeWindowOut(hWnd, hdcScreen)
 							cmp rax, 1
 							je CSplashScreen_Pump_EndIf_05
-						CSplashScreen_Pump_EndIf_07:		; .ENDIF
+						CSplashScreen_Pump_EndIf_08:		; .ENDIF
+						
 						; Dispatch thread message
 						lea rcx, msg
 						call TranslateMessage	; invoke TranslateMessage, ADDR msg
@@ -792,12 +800,12 @@ CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, 
 					lea rcx, msg
 					call GetMessage	; invoke GetMessage, ADDR msg, hwndSplash, 0, 0
 					cmp rax, FALSE
-					jne FadeWindow_Start	; execute while eax != FALSE
+					jne FadeWindow_Start	; execute loop while GetMessage( &msg, hWnd, 0, 0 )) != 0
 			CSplashScreen_Pump_EndIf_05:
 
-				mov eax, dwWaitResult	; We return the results from MsgWaitForMultipleObjects
-
-			jmp exit_PumpMsgWaitForMultipleObjects
+			; We return the results from MsgWaitForMultipleObjects and exit the for(;;) lookp
+			mov eax, dwWaitResult	
+			jmp exit_PumpMsgWaitForMultipleObjects	
 
 		CSplashScreen_Pump_EndIf_03:
 

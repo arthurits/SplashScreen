@@ -27,8 +27,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	//const wchar_t* lpszExecutable;
 	std::basic_string <WCHAR> strFadeoutTime = L"0";
 	std::basic_string <WCHAR> strSuffix = L"";
-	//std::wifstream fin(L"C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
-	std::wifstream fin(L"C:\\Users\\alfredoa\\source\\repos\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
+	std::wifstream fin(L"C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
+	//std::wifstream fin(L"C:\\Users\\alfredoa\\source\\repos\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
 	//std::wifstream fin(L"settings.txt");	// https://stackoverflow.com/questions/19697296/what-is-stdwifstreamgetline-doing-to-my-wchar-t-array-its-treated-like-a-b
 	int nFadeoutTime = 0;
 

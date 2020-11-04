@@ -294,7 +294,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 				m_nFadeoutEnd = GetTickCount() + m_nFadeoutTime;
 				BOOL bRet;
 
-				while( (bRet = GetMessage( &msg, hWnd, 0, 0 )) != 0)
+				while( (bRet = GetMessage(&msg, hWnd, 0, 0)) != 0)
 				{ 
 					if (bRet == -1)
 					{
@@ -302,7 +302,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 					}
 					else
 					{
-						if (msg.message == WM_QUIT)
+						if (msg.message == WM_CLOSE)
 							return dwWaitResult;
 						if (msg.message == WM_TIMER) {
 							if (FadeWindowOut(hWnd, hdcScreen))
@@ -311,6 +311,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 								return dwWaitResult;
 							}
 						}
+
 						TranslateMessage(&msg);
 						DispatchMessage(&msg);
 					}

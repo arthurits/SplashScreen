@@ -60,6 +60,7 @@ HWND_TOPMOST        equ -1
 PixelFormat32bppARGB    EQU 26200Ah
 
 ; Messages
+WM_CLOSE        equ 10h
 WM_DESTROY      equ 2h
 WM_PAINT        equ 0Fh
 WM_TIMER        equ 113h
