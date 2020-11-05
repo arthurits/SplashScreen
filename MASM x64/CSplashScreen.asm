@@ -70,7 +70,7 @@ CSplashScreen_Init PROC uses rcx rsi rdi lpTHIS:QWORD, hInstance:QWORD, strImage
 	mov 	rsi, OFFSET CSplashScreen_initdata
 	mov 	rdi, lpTHIS
 	mov 	rcx, CSplashScreen_initend
-	shr 	rcx, 4
+	shr 	rcx, 3
 	rep 	movsq
 	mov 	rcx, CSplashScreen_initend
 	and 	rcx, 7

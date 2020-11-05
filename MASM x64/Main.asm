@@ -86,11 +86,11 @@ main PROC
 
 	mov rcx, offset fileName
 	mov QWORD PTR [rsp+8], rcx	; 2nd argument, move rcx to the 2nd shallow space
-	;mov QWORD PTR [rsp], rax	; move rax to the first shallow space
+	;mov QWORD PTR [rsp], rbx	; move rax to the first shallow space
 	call (CFile PTR [rbx]).OpenFile
 	; add rsp, 16	; Not necessary!
 
-	mov QWORD PTR [rsp], rbx	; move rbx to the first shallow space
+	;mov QWORD PTR [rsp], rbx	; move rbx to the first shallow space
 	call (CFile PTR [rbx]).ConvertToLine	;	invoke (CFile PTR [eax]).OpenFile, eax
 	;lea rsp, [rsp+8]	; add rsp, 8
 

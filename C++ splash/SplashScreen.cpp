@@ -322,7 +322,10 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 		}
 	}
 }
-
+// 
+// https://stackoverflow.com/questions/1846385/running-a-windows-program-and-detect-when-it-ends-with-c
+// https://stackoverflow.com/questions/51746505/why-cant-i-quit-the-mfc-program-when-i-used-msgwaitformultipleobjects
+// https://stackoverflow.com/questions/36651902/cant-remove-wm-timer-message
 void CSplashScreen::Show() {
 	
 	// If the App file does not exist, then exit
