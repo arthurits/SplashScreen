@@ -19,18 +19,18 @@
 #include <stdlib.h>
 #include <crtdbg.h>
 
-int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
+int APIENTRY _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPTSTR lpCmdLine, _In_ int nCmdShow)
 {
 	// Local variables to store the settings
-	std::basic_string <WCHAR> strImagePath;
-	std::basic_string <WCHAR> strExecutable = L"";
-	//const wchar_t* lpszExecutable;
-	std::basic_string <WCHAR> strFadeoutTime = L"0";
-	std::basic_string <WCHAR> strSuffix = L"";
-	std::wifstream fin(L"C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
+	std::basic_string <TCHAR> strImagePath;
+	std::basic_string <TCHAR> strExecutable = _T("");
+	std::basic_string <TCHAR> strFadeoutTime = _T("0");
+	std::basic_string <TCHAR> strSuffix = _T("");
+	std::basic_ifstream <TCHAR> fin(_T("settings.txt"));	// https://stackoverflow.com/questions/19697296/what-is-stdwifstreamgetline-doing-to-my-wchar-t-array-its-treated-like-a-b
+	//std::basic_ifstream <TCHAR> fin(_T("C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt"));
+	//std::wifstream fin(L"C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
 	//std::wifstream fin(L"C:\\Users\\alfredoa\\source\\repos\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
-	//std::wifstream fin(L"settings.txt");	// https://stackoverflow.com/questions/19697296/what-is-stdwifstreamgetline-doing-to-my-wchar-t-array-its-treated-like-a-b
-	int nFadeoutTime = 0;
+	__int64 nFadeoutTime = 0;
 
 	// If the file couldn't be opened
 	if (!fin)
@@ -46,7 +46,6 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	// Read the settings from the file
 	if (!fin.eof()) std::getline(fin, strImagePath);
 	if (!fin.eof()) std::getline(fin, strExecutable);
-	//lpszExecutable = strExecutable.c_str();
 	if (!fin.eof()) std::getline(fin, strFadeoutTime);
 	// https://stackoverflow.com/questions/32006796/how-to-convert-wchar-t-to-long-c
 	//nFadeoutTime = std::stoi(strFadeoutTime);

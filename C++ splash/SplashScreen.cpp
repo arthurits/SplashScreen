@@ -5,6 +5,29 @@
 #pragma comment (lib,"Gdiplus.lib")
 #include "SplashScreen.h"
 
+// For printing to the Output Window in Visual Studio
+// https://stackoverflow.com/questions/1149620/how-to-write-to-the-output-window-in-visual-studio/1149622
+// https://windowscecleaner.blogspot.com/2013/04/debug-output-tricks-for-visual-studio.html
+#include <sstream>
+#define DebugOut(s)       DBO(__FILE__, __LINE__, s)
+void DBO(const char* file, const int line, const TCHAR* s)
+{
+	std::basic_ostringstream <TCHAR> os_;
+	os_ << file << "(" << line << "): ";
+	os_ << s;
+	os_ << "\r\n";
+	OutputDebugStringW(os_.str().c_str());
+}
+
+#define DebugOutput(s)			\
+{								\
+	std::basic_ostringstream <TCHAR> os_;			\
+	os_ << __FILE__ << "(" << __LINE__ << "): ";	\
+	os_ << s;										\
+	os_ << "\r\n";									\
+	OutputDebugStringW(os_.str().c_str());			\
+}
+
 /*
 CSplashScreen::CSplashScreen(HINSTANCE hInstance, DWORD nFadeoutTime, CImageLoader *pImgLoader, LPCTSTR lpszImagePath, LPCTSTR lpszPrefix, LPCTSTR lpszAppFileName)
 {
@@ -230,14 +253,14 @@ HANDLE CSplashScreen::LaunchApplication()
 
 bool CSplashScreen::FadeWindowOut(HWND hWnd, HDC hdcScreen) {
 	
-	DWORD dtNow = ::GetTickCount();
-	if (dtNow >= m_nFadeoutEnd) 
+	const ULONGLONG qwNow = ::GetTickCount64();
+	if (qwNow >= m_nFadeoutEnd) 
 	{
 		return true;
 	} 
 	else
 	{ 
-		double fade = ((double)m_nFadeoutEnd - (double)dtNow) / (double)m_nFadeoutTime;
+		double fade = ((double)m_nFadeoutEnd - qwNow) / m_nFadeoutTime;
 		m_blend.SourceConstantAlpha = (byte)(255 * fade);
 		
 		UpdateLayeredWindow(hWnd, hdcScreen, NULL, NULL, NULL, NULL, RGB(0, 0, 0), &m_blend, ULW_ALPHA);
@@ -249,14 +272,14 @@ bool CSplashScreen::FadeWindowOut(HWND hWnd, HDC hdcScreen) {
 inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCount, LPHANDLE pHandles, DWORD dwMilliseconds)
 {
 	// useful variables
-	const DWORD dwStartTickCount = ::GetTickCount();
+	const ULONGLONG qwStartTickCount = ::GetTickCount64();
 
 	// loop until done. Other option: while (true)
 	for (;;)
 	{
 		// calculate timeout
-		const DWORD dwElapsed = GetTickCount() - dwStartTickCount;
-		const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE :dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0;
+		const DWORD dwElapsed = (DWORD)(GetTickCount64() - qwStartTickCount);
+		const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE : dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0;
 
 		// wait for a handle to be signaled or a message
 		const DWORD dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
@@ -287,22 +310,24 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 			// check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
 			// if the fade event is set then we need to fade out  
 			const DWORD dwWaitResult = MsgWaitForMultipleObjects(1, &pHandles[1], FALSE, 0, QS_ALLINPUT);
-			if (dwWaitResult == WAIT_OBJECT_0) {
+			
+			if (dwWaitResult <= WAIT_OBJECT_0) {
 				MSG msg;
 				// timeout on actual wait or any other object
 				SetTimer(hWnd, 1, 30, NULL);
-				m_nFadeoutEnd = GetTickCount() + m_nFadeoutTime;
+				m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
 				BOOL bRet;
 
 				while( (bRet = GetMessage(&msg, hWnd, 0, 0)) != 0)
-				{ 
+				{
+					//DebugOutput("msg.message value: " << msg.message);
 					if (bRet == -1)
 					{
 						::MessageBox(NULL, _T("Error: function GetMessage returned -1"), _T("Error"), MB_ICONERROR);
 					}
 					else
 					{
-						if (msg.message == WM_CLOSE)
+						if (msg.message == WM_CLOSE || msg.message == WM_QUIT)
 							return dwWaitResult;
 						if (msg.message == WM_TIMER) {
 							if (FadeWindowOut(hWnd, hdcScreen))

@@ -11,8 +11,8 @@ class CSplashScreen
 	private:
 		HINSTANCE m_hInstance;
 		BLENDFUNCTION m_blend;
-		DWORD m_nFadeoutEnd;
-		DWORD m_nFadeoutTime;
+		ULONGLONG m_nFadeoutEnd;
+		ULONGLONG m_nFadeoutTime;
 		std::basic_string <WCHAR> m_strSplashClass;	// Window Class name
 		std::basic_string <WCHAR> m_strFullPath;	//
 		std::basic_string <WCHAR> m_strPrefix;		// Prefix

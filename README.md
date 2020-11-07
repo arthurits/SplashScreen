@@ -13,7 +13,7 @@ This project continues Bradley's and Stefan's efforts incorporating some minor t
 1. Set the splash screen application icon in the corresponding resources.rc file and then compile any of the 3 versions.
 2. Create a text file named *settings.txt* and place it in the same folder as the splash screen application. Write three text lines:
    * Path (either absolute or relative) of the splash image. The resulting absolute path should be less than 260 characters long.
-   * Path (either absolute or relative) of application to be launched. The resulting absolute path should be less than 260 characters long.
+   * Path (either absolute or relative) of the application to be launched. The resulting absolute path should be less than 260 characters long.
    * Time in miliseconds for the fading out of the splash screen (typically 500 or less).
 3. Use this code in the form's shown event to signal the fading out of the splash screen:
 ```
