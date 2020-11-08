@@ -269,6 +269,96 @@ bool CSplashScreen::FadeWindowOut(HWND hWnd, HDC hdcScreen) {
 
 }
 
+/*
+inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCount, LPHANDLE pHandles, DWORD dwMilliseconds)
+{
+	// useful variables
+	const ULONGLONG qwStartTickCount = ::GetTickCount64();
+	UINT_PTR Timer = 0;
+	HDC hdcScreen = GetDC(NULL);
+
+	// loop until done. Other option: while (true)
+	for (;;)
+	{
+		// calculate timeout
+		const DWORD dwElapsed = (DWORD)(GetTickCount64() - qwStartTickCount);
+		const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE : dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0;
+
+		// wait for a handle to be signaled or a message
+		const DWORD dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
+		DebugOutput("dwWaitResult: " << dwWaitResult);
+		switch (dwWaitResult)
+		{
+			// Process messages
+			case WAIT_OBJECT_0:
+			case WAIT_OBJECT_0 + 3:
+
+				// pump messages
+				MSG msg;
+				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != FALSE)
+				{
+					DebugOutput("msg.message value: " << msg.message);
+					switch (msg.message)
+					{
+					case WM_DESTROY:
+						ReleaseDC(NULL, hdcScreen);
+						return dwWaitResult;
+						break;
+					case WM_CLOSE:
+						ReleaseDC(NULL, hdcScreen);
+						return dwWaitResult;
+						break;
+					case WM_TIMER:
+						if (msg.message == WM_TIMER && Timer != 0) {
+							if (FadeWindowOut(hWnd, hdcScreen))
+							{ // finished
+								ReleaseDC(NULL, hdcScreen);
+								return dwWaitResult;
+							}
+						}
+						break;
+					case WM_QUIT:
+						// repost quit message and return
+						PostQuitMessage((int)msg.wParam);
+						ReleaseDC(NULL, hdcScreen);
+						return WAIT_OBJECT_0 + nCount;
+						break;
+					default:
+						break;
+					}
+					// dispatch thread message
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+				if (Timer != 0)
+					return dwWaitResult;
+			break;
+
+			// Object pHandles[1]
+			case WAIT_OBJECT_0 + 1:
+				Timer = SetTimer(hWnd, 1, 30, NULL);
+				m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
+				DWORD dwWaitResult;
+				dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
+				break;
+
+			// Object pHandles[2]
+			case WAIT_OBJECT_0 + 2:
+				return dwWaitResult;
+				break;
+
+			
+
+			case WAIT_TIMEOUT:
+				break;
+		}
+
+		
+	}
+}
+*/
+
+
 inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCount, LPHANDLE pHandles, DWORD dwMilliseconds)
 {
 	// useful variables
@@ -347,6 +437,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 		}
 	}
 }
+
 // 
 // https://stackoverflow.com/questions/1846385/running-a-windows-program-and-detect-when-it-ends-with-c
 // https://stackoverflow.com/questions/51746505/why-cant-i-quit-the-mfc-program-when-i-used-msgwaitformultipleobjects
