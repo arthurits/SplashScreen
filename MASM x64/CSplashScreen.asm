@@ -185,9 +185,9 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 		call CSplashScreen_CreateSplashWindow
 		mov hSplashWnd, rax
 		
-		mov QWORD PTR [rsp + 8], rax		; 2nd argument
-		mov rax, hBmp
-		mov QWORD PTR [rsp + 16], rax		; 3rd argument	
+		mov rcx, hBmp
+		mov QWORD PTR [rsp + 16], rcx		; 3rd argument	
+		mov QWORD PTR [rsp + 8], rax		; 2nd argument		
 		; mov QWORD PTR [rsp], rdi			; 1st argument. Not necessary, it's already there
 		call CSplashScreen_SetSplashImage	; returns rax=0 if unsuccessful
 
@@ -221,7 +221,6 @@ CSplashScreen_Show PROC uses rdi r15 lpTHIS:QWORD
 		mov QWORD PTR [rsp+8], r8
 		mov QWORD PTR [rsp], rdi			; Necessary since Win32 API calls could have modified this shallow space
 		call CSplashScreen_PumpMsgWaitForMultipleObjects	; lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
-		;add rsp, 40
 
 	exit_Show:
 	mov rdx, hdcScreen
