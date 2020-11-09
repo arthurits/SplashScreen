@@ -373,7 +373,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 
 		// wait for a handle to be signaled or a message
 		const DWORD dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
-
+		//DebugOutput("1 - dwWaitResult: " << dwWaitResult);
 		if (dwWaitResult == WAIT_OBJECT_0 + nCount)
 		{
 			// pump messages
@@ -381,6 +381,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 
 			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != FALSE)
 			{
+				DebugOutput("1 - dwWaitResult: " << dwWaitResult << " — msg.message value: " << msg.message);
 				// check for WM_QUIT
 				if (msg.message == WM_QUIT)
 				{
@@ -397,17 +398,17 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 		else
 		{
 			HDC hdcScreen = GetDC(NULL);
-			// check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
-			// if the fade event is set then we need to fade out  
+			// Check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
+			// If the fade event is set then we need to fade out
 			const DWORD dwWaitResult = MsgWaitForMultipleObjects(1, &pHandles[1], FALSE, 0, QS_ALLINPUT);
-			
-			if (dwWaitResult <= WAIT_OBJECT_0) {
+			DebugOutput("2 - dwWaitResult: " << dwWaitResult);
+			if (dwWaitResult == WAIT_OBJECT_0) {
 				MSG msg;
 				// timeout on actual wait or any other object
 				SetTimer(hWnd, 1, 30, NULL);
 				m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
+				
 				BOOL bRet;
-
 				while( (bRet = GetMessage(&msg, hWnd, 0, 0)) != 0)
 				{
 					//DebugOutput("msg.message value: " << msg.message);
@@ -451,31 +452,29 @@ void CSplashScreen::Show() {
 	HRESULT hr = CoInitializeEx(0, COINIT::COINIT_APARTMENTTHREADED | COINIT::COINIT_DISABLE_OLE1DDE);
 	if (FAILED(hr)) return;
 
-	// create the named close splash screen event, making sure we're the first process to create it
+	// Create the named close splash screen event, making sure we're the first process to create it
 	SetLastError(ERROR_SUCCESS);
 
-	std::basic_string <WCHAR> strEvent1 = L"CloseSplashScreenEvent" + m_strPrefix;
+	std::basic_string <TCHAR> strEvent1 = _T("CloseSplashScreenEvent") + m_strPrefix;
 	HANDLE hCloseSplashEvent = CreateEvent(NULL, TRUE, FALSE, strEvent1.c_str());
 	
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		ExitProcess(0);
 	}
 
-	// std::basic_string <TCHAR> strEvent2 = _T("CloseSplashScreenWithoutFadeEvent") + m_strPrefix;
-	std::basic_string <WCHAR> strEvent2 = L"CloseSplashScreenWithoutFadeEvent" + m_strPrefix;
+	std::basic_string <TCHAR> strEvent2 = _T("CloseSplashScreenWithoutFadeEvent") + m_strPrefix;
 	HANDLE hCloseSplashWithoutFadeEvent = CreateEvent(NULL, TRUE, FALSE, strEvent2.c_str());
 	if (GetLastError() == ERROR_ALREADY_EXISTS) {
 		ExitProcess(0);
 	}
 
 	// Create and display the splash window
-	HBITMAP hb;
-	//hb = m_pImgLoader->LoadSplashImage();
-	hb = CreateBitmapImage();
-	HWND wnd= NULL;
-	RegisterWindowClass();
+	HBITMAP hb = NULL;
+	HWND wnd = NULL;
+	hb = CreateBitmapImage();			//hb = m_pImgLoader->LoadSplashImage();
 
 	if (hb != NULL) {
+		RegisterWindowClass();
 		wnd = CreateSplashWindow();
 		SetSplashImage(wnd, hb);
 	}
@@ -490,17 +489,18 @@ void CSplashScreen::Show() {
 		PumpMsgWaitForMultipleObjects(wnd, 3, &aHandles[0], INFINITE);
 	}
 
+
 	// Deallocate the hbitmap
-	DeleteObject(hb);
+	if (hb!= NULL) DeleteObject(hb);
 
 	CloseHandle(hProcess);
 
 	// Close the events
-	CloseHandle(hCloseSplashEvent);
-	CloseHandle(hCloseSplashWithoutFadeEvent);
+	if (hCloseSplashEvent != NULL) CloseHandle(hCloseSplashEvent);
+	if (hCloseSplashWithoutFadeEvent != NULL) CloseHandle(hCloseSplashWithoutFadeEvent);
 	
 	// Destroy the window
-	DestroyWindow(wnd);
+	if (wnd != NULL) DestroyWindow(wnd);
 	UnregisterWindowClass();
 
 	// Close the COM library
