@@ -291,8 +291,9 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 		{
 			// Process messages
 			case WAIT_OBJECT_0:
+				return dwWaitResult;
+				break;
 			case WAIT_OBJECT_0 + 3:
-
 				// pump messages
 				MSG msg;
 				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != FALSE)
@@ -300,14 +301,6 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 					DebugOutput("msg.message value: " << msg.message);
 					switch (msg.message)
 					{
-					case WM_DESTROY:
-						ReleaseDC(NULL, hdcScreen);
-						return dwWaitResult;
-						break;
-					case WM_CLOSE:
-						ReleaseDC(NULL, hdcScreen);
-						return dwWaitResult;
-						break;
 					case WM_TIMER:
 						if (msg.message == WM_TIMER && Timer != 0) {
 							if (FadeWindowOut(hWnd, hdcScreen))
@@ -317,12 +310,6 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 							}
 						}
 						break;
-					case WM_QUIT:
-						// repost quit message and return
-						PostQuitMessage((int)msg.wParam);
-						ReleaseDC(NULL, hdcScreen);
-						return WAIT_OBJECT_0 + nCount;
-						break;
 					default:
 						break;
 					}
@@ -330,16 +317,18 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
 				}
-				if (Timer != 0)
-					return dwWaitResult;
+
 			break;
 
 			// Object pHandles[1]
 			case WAIT_OBJECT_0 + 1:
-				Timer = SetTimer(hWnd, 1, 30, NULL);
-				m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
-				DWORD dwWaitResult;
-				dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
+				if (Timer == 0)
+				{
+					Timer = SetTimer(hWnd, 1, 30, NULL);
+					m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
+				}
+				//DWORD dwWaitResult;
+				//dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
 				break;
 
 			// Object pHandles[2]
@@ -373,7 +362,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 
 		// wait for a handle to be signaled or a message
 		const DWORD dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
-		//DebugOutput("1 - dwWaitResult: " << dwWaitResult);
+		DebugOutput("1 - dwWaitResult: " << dwWaitResult);
 		if (dwWaitResult == WAIT_OBJECT_0 + nCount)
 		{
 			// pump messages
@@ -386,7 +375,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 				if (msg.message == WM_QUIT)
 				{
 					// repost quit message and return
-					PostQuitMessage((int) msg.wParam);
+					PostQuitMessage((int)msg.wParam);
 					return WAIT_OBJECT_0 + nCount;
 				}
 
@@ -401,17 +390,17 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 			// Check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
 			// If the fade event is set then we need to fade out
 			const DWORD dwWaitResult = MsgWaitForMultipleObjects(1, &pHandles[1], FALSE, 0, QS_ALLINPUT);
-			DebugOutput("2 - dwWaitResult: " << dwWaitResult);
+			//DebugOutput("2 - dwWaitResult: " << dwWaitResult);
 			if (dwWaitResult == WAIT_OBJECT_0) {
-				MSG msg;
 				// timeout on actual wait or any other object
 				SetTimer(hWnd, 1, 30, NULL);
 				m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
 				
+				MSG msg;
 				BOOL bRet;
-				while( (bRet = GetMessage(&msg, hWnd, 0, 0)) != 0)
+				while ( (bRet = GetMessage(&msg, NULL, 0, 0)) !=0)
 				{
-					//DebugOutput("msg.message value: " << msg.message);
+					DebugOutput("msg.message value: " << msg.message << " — bRet: " << bRet);
 					if (bRet == -1)
 					{
 						::MessageBox(NULL, _T("Error: function GetMessage returned -1"), _T("Error"), MB_ICONERROR);
@@ -439,10 +428,11 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 	}
 }
 
-// 
+// http://www.cplusplus.com/forum/beginner/38860/
 // https://stackoverflow.com/questions/1846385/running-a-windows-program-and-detect-when-it-ends-with-c
 // https://stackoverflow.com/questions/51746505/why-cant-i-quit-the-mfc-program-when-i-used-msgwaitformultipleobjects
 // https://stackoverflow.com/questions/36651902/cant-remove-wm-timer-message
+
 void CSplashScreen::Show() {
 	
 	// If the App file does not exist, then exit
