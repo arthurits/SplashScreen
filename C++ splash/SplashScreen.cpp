@@ -352,6 +352,70 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 {
 	// useful variables
 	const ULONGLONG qwStartTickCount = ::GetTickCount64();
+	BOOL bWaiting = true;
+
+	// calculate timeout
+	const DWORD dwElapsed = (DWORD)(GetTickCount64() - qwStartTickCount);
+	const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE : dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0;
+
+	// wait for a handle to be signaled or a message
+	MSG msg;
+	DWORD dwWaitResult;
+	while (bWaiting)
+	{
+		dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
+		DebugOutput("dwWaitResult: " << dwWaitResult);
+		if (dwWaitResult == nCount)
+		{
+			GetMessage(&msg, NULL, 0, 0);
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else bWaiting = false;
+	}
+	if (dwWaitResult != 1) return dwWaitResult;
+
+	SetTimer(hWnd, 1, 30, NULL);
+	m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
+
+	HDC hdcScreen = GetDC(NULL);
+	//MSG msg;
+	BOOL bRet;
+	while ( true )
+	{
+		bRet = GetMessage(&msg, NULL, 0, 0);
+		DebugOutput("msg.message value: " << msg.message << " — bRet: " << bRet);
+		switch (bRet)
+		{
+		case -1:
+			::MessageBox(NULL, _T("Error: function GetMessage returned -1"), _T("Error"), MB_ICONERROR);
+			ReleaseDC(NULL, hdcScreen);
+			return dwWaitResult;
+			break;
+		case 0:
+			::MessageBox(NULL, _T("GetMessage returned 0: WM_QUIT"), _T("Error"), MB_ICONERROR);
+			ReleaseDC(NULL, hdcScreen);
+			return dwWaitResult;
+			break;
+		default:
+			if (msg.message == WM_TIMER) {
+				if (FadeWindowOut(hWnd, hdcScreen))
+				{ // finished
+					ReleaseDC(NULL, hdcScreen);
+					return dwWaitResult;
+				}
+			}
+		}
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
+/*
+inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCount, LPHANDLE pHandles, DWORD dwMilliseconds)
+{
+	// useful variables
+	const ULONGLONG qwStartTickCount = ::GetTickCount64();
 
 	// loop until done. Other option: while (true)
 	for (;;)
@@ -426,8 +490,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 			return dwWaitResult;
 		}
 	}
-}
-
+}*/
 // http://www.cplusplus.com/forum/beginner/38860/
 // https://stackoverflow.com/questions/1846385/running-a-windows-program-and-detect-when-it-ends-with-c
 // https://stackoverflow.com/questions/51746505/why-cant-i-quit-the-mfc-program-when-i-used-msgwaitformultipleobjects
