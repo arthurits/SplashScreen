@@ -43,7 +43,7 @@ BEGIN
 			VALUE "CompanyName", "Alf Interactive Entertainment"
 			//VALUE "CompanyShortName", "Alf Interactive Entertainment"
 			VALUE "Developer", "Arthurits"
-			VALUE "FileDescription", "Universal splash screen in native C"
+			VALUE "FileDescription", "Universal splash screen in native C++"
 			VALUE "FileVersion", "1.0.0.0"
 			//VALUE "InternalName", "Universal splash screen starter"
 			//VALUE "LastChange", "27/03/2020"

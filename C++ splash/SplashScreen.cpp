@@ -3,6 +3,7 @@
 #include "shlwapi.h"
 #include <gdiplus.h>
 #pragma comment (lib,"Gdiplus.lib")
+
 #include "SplashScreen.h"
 
 // For printing to the Output Window in Visual Studio
@@ -45,6 +46,14 @@ CSplashScreen::CSplashScreen(HINSTANCE hInstance, DWORD nFadeoutTime, CImageLoad
 }
 */
 
+/// <summary>
+/// Class constructor
+/// </summary>
+/// <param name="hInstance"></param>
+/// <param name="nFadeoutTime"></param>
+/// <param name="lpszImagePath"></param>
+/// <param name="lpszPrefix"></param>
+/// <param name="lpszAppFileName"></param>
 CSplashScreen::CSplashScreen(HINSTANCE hInstance, DWORD nFadeoutTime, LPCTSTR lpszImagePath, LPCTSTR lpszPrefix, LPCTSTR lpszAppFileName)
 {
 	m_strSplashClass = L"SplashWindow";
@@ -57,7 +66,7 @@ CSplashScreen::CSplashScreen(HINSTANCE hInstance, DWORD nFadeoutTime, LPCTSTR lp
 	//m_boolFileExists = FileExists(lpszAppFileName);
 	m_boolFileExists = true;
 
-	memset(&m_blend, 0, sizeof(m_blend));
+	memset(&m_blend, 0, sizeof(m_blend));	// ZeroMemory(&m_blend, sizeof(m_blend));
 	m_nFadeoutEnd = 0;
 }
 
@@ -70,8 +79,12 @@ void CSplashScreen::SetFullPath(LPCTSTR lpszPath)
 	m_strFullPath = lpszPath;
 }
 
-// Returns true if the file exists. False otherwise
-// https://stackoverflow.com/questions/3828835/how-can-we-check-if-a-file-exists-or-not-using-win32-program
+/// <summary>
+/// Returns true if the file exists. False otherwise
+/// https://stackoverflow.com/questions/3828835/how-can-we-check-if-a-file-exists-or-not-using-win32-program
+/// </summary>
+/// <param name="lpszAppFileName"></param>
+/// <returns></returns>
 bool CSplashScreen::FileExists(LPCTSTR lpszAppFileName)
 {
 	/*
@@ -83,7 +96,11 @@ bool CSplashScreen::FileExists(LPCTSTR lpszAppFileName)
 	return true;
 }
 
-// Calls UpdateLayeredWindow to set a bitmap (with alpha) as the content of the splash window.
+/// <summary>
+/// Calls UpdateLayeredWindow to set a bitmap (with alpha) as the content of the splash window.
+/// </summary>
+/// <param name="hwndSplash"></param>
+/// <param name="hbmpSplash"></param>
 void CSplashScreen::SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
 {
 	// get the size of the bitmap
@@ -125,6 +142,7 @@ void CSplashScreen::SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
 	DeleteDC(hdcMem);
 	ReleaseDC(NULL, hdcScreen);
 
+	/* Not necessary
 	::SetWindowPos(hwndSplash ,       // handle to window
 				HWND_TOPMOST,  // placement-order handle
 				ptOrigin.x,     // horizontal position
@@ -132,9 +150,13 @@ void CSplashScreen::SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
 				sizeSplash.cx,  // width
 				sizeSplash.cy, // height
 				SWP_SHOWWINDOW); // window-positioning options);
+	*/
 }
 
-
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
 HBITMAP CSplashScreen::CreateBitmapImage()
 {
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -189,7 +211,10 @@ HBITMAP CSplashScreen::CreateBitmapImage()
 	// https://social.msdn.microsoft.com/Forums/vstudio/en-US/f53660f5-4e6b-4bff-9849-61170c789caa/gdiplus-problem?forum=vcgeneral
 }
 
-// Creates the splash owner window and the splash window.
+/// <summary>
+/// Creates the splash owner window and the splash window
+/// </summary>
+/// <returns>The handle of the window created</returns>
 HWND CSplashScreen::CreateSplashWindow()
 {
 	// https://stackoverflow.com/questions/42351633/show-taskbar-button-when-using-ws-ex-toolwindow
@@ -198,7 +223,9 @@ HWND CSplashScreen::CreateSplashWindow()
 	return CreateWindowEx(WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TOPMOST, m_strSplashClass.c_str(), NULL, WS_POPUP | WS_VISIBLE, 0, 0, 0, 0, NULL, NULL, m_hInstance, NULL);
 }
 
-// Registers a window class for the splash and splash owner windows.
+/// <summary>
+/// Registers a window class for the splash and splash owner windows
+/// </summary>
 void CSplashScreen::RegisterWindowClass()
 {
 	WNDCLASS wc = { 0 };
@@ -210,11 +237,18 @@ void CSplashScreen::RegisterWindowClass()
 
 	RegisterClass(&wc);
 }
-// Registers a window class for the splash and splash owner windows.
+
+/// <summary>
+/// Unregisters a window class for the splash and splash owner windows.
+/// </summary>
 void CSplashScreen::UnregisterWindowClass() {
 	UnregisterClass(m_strSplashClass.c_str(), m_hInstance);
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <returns></returns>
 HANDLE CSplashScreen::LaunchApplication()
 {
 	// get folder of the current process
@@ -242,7 +276,7 @@ HANDLE CSplashScreen::LaunchApplication()
 
 	CreateProcess(szApplicationPath, GetCommandLine(), NULL, NULL, FALSE, CREATE_UNICODE_ENVIRONMENT, NULL, szCurrentFolder, &si, &pi);
 	//CreateProcess(szApplicationPath, GetCommandLine(), NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-
+	// need to check for pi.hProcess==INVALID_HANDLE_VALUE (-1) or CreateProcess==0
 	// Normally we should close both process and thread handles in order to avoid memory leaks: CloseHandle(pi.hProcess) CloseHandle(pi.hThread)
 	// but here the variable pi goes out of scope
 	//CloseHandle(pi.hProcess);
@@ -251,6 +285,12 @@ HANDLE CSplashScreen::LaunchApplication()
 	return pi.hProcess; 
 }
 
+/// <summary>
+/// 
+/// </summary>
+/// <param name="hWnd"></param>
+/// <param name="hdcScreen"></param>
+/// <returns></returns>
 bool CSplashScreen::FadeWindowOut(HWND hWnd, HDC hdcScreen) {
 	
 	const ULONGLONG qwNow = ::GetTickCount64();
@@ -269,146 +309,60 @@ bool CSplashScreen::FadeWindowOut(HWND hWnd, HDC hdcScreen) {
 
 }
 
-/*
+/// <summary>
+/// Closes and fades out the splash window
+/// </summary>
+/// <param name="hWnd">Splash window handle</param>
+/// <param name="nCount">number of elements in pHandles</param>
+/// <param name="pHandles">Array with launched handle, CloseSplash event, and CloseWithoutFading event</param>
+/// <param name="dwMilliseconds">Time waiting for any of the object in pHandles to return</param>
+/// <returns>Value returned by WaitForMultipleObjects function</returns>
 inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCount, LPHANDLE pHandles, DWORD dwMilliseconds)
 {
-	// useful variables
+	// Variables
+	BOOL bGetMsg = true;
+	BOOL bRetMsg;
+	HDC hdcScreen;
+	MSG msg;
+
+	// Calculate timeout
 	const ULONGLONG qwStartTickCount = ::GetTickCount64();
-	UINT_PTR Timer = 0;
-	HDC hdcScreen = GetDC(NULL);
-
-	// loop until done. Other option: while (true)
-	for (;;)
-	{
-		// calculate timeout
-		const DWORD dwElapsed = (DWORD)(GetTickCount64() - qwStartTickCount);
-		const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE : dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0;
-
-		// wait for a handle to be signaled or a message
-		const DWORD dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
-		DebugOutput("dwWaitResult: " << dwWaitResult);
-		switch (dwWaitResult)
-		{
-			// Process messages
-			case WAIT_OBJECT_0:
-				return dwWaitResult;
-				break;
-			case WAIT_OBJECT_0 + 3:
-				// pump messages
-				MSG msg;
-				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != FALSE)
-				{
-					DebugOutput("msg.message value: " << msg.message);
-					switch (msg.message)
-					{
-					case WM_TIMER:
-						if (msg.message == WM_TIMER && Timer != 0) {
-							if (FadeWindowOut(hWnd, hdcScreen))
-							{ // finished
-								ReleaseDC(NULL, hdcScreen);
-								return dwWaitResult;
-							}
-						}
-						break;
-					default:
-						break;
-					}
-					// dispatch thread message
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
-
-			break;
-
-			// Object pHandles[1]
-			case WAIT_OBJECT_0 + 1:
-				if (Timer == 0)
-				{
-					Timer = SetTimer(hWnd, 1, 30, NULL);
-					m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
-				}
-				//DWORD dwWaitResult;
-				//dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
-				break;
-
-			// Object pHandles[2]
-			case WAIT_OBJECT_0 + 2:
-				return dwWaitResult;
-				break;
-
-			
-
-			case WAIT_TIMEOUT:
-				break;
-		}
-
-		
-	}
-}
-*/
-
-
-inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCount, LPHANDLE pHandles, DWORD dwMilliseconds)
-{
-	// useful variables
-	const ULONGLONG qwStartTickCount = ::GetTickCount64();
-	BOOL bWaiting = true;
-
-	// calculate timeout
 	const DWORD dwElapsed = (DWORD)(GetTickCount64() - qwStartTickCount);
 	const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE : dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0;
 
-	// wait for a handle to be signaled or a message
-	MSG msg;
-	DWORD dwWaitResult;
-	while (bWaiting)
+	// Wait for a handle to be signaled
+	const DWORD dwWaitResult = WaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout);
+		//DebugOutput("dwWaitResult: " << dwWaitResult);
+	// If pHandles[1] is signaled, then fade out the splash window
+	if (dwWaitResult == 1)
 	{
-		dwWaitResult = MsgWaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout, QS_ALLINPUT);
-		DebugOutput("dwWaitResult: " << dwWaitResult);
-		if (dwWaitResult == nCount)
+		hdcScreen = GetDC(NULL);
+		SetTimer(hWnd, 1, 30, NULL);
+		m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
+	
+		while (bGetMsg)
 		{
-			GetMessage(&msg, NULL, 0, 0);
+			bRetMsg = GetMessage(&msg, NULL, 0, 0);
+				//DebugOutput("msg.message value: " << msg.message << " — bRet: " << bRetMsg);
+			if (WaitForSingleObject(pHandles[0], 0) == WAIT_OBJECT_0) bRetMsg = 0;
+			switch (bRetMsg)
+			{
+			case -1:
+				::MessageBox(NULL, _T("Error: function GetMessage returned -1"), _T("Error"), MB_ICONERROR);
+			case 0:	// WM_QUIT
+				bGetMsg = false;
+				break;
+			default:
+				if (msg.message == WM_TIMER) {
+					if (FadeWindowOut(hWnd, hdcScreen)) bGetMsg = false;	// finished FadingWindowOut
+				}
+			}
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		else bWaiting = false;
+		ReleaseDC(NULL, hdcScreen);
 	}
-	if (dwWaitResult != 1) return dwWaitResult;
-
-	SetTimer(hWnd, 1, 30, NULL);
-	m_nFadeoutEnd = GetTickCount64() + m_nFadeoutTime;
-
-	HDC hdcScreen = GetDC(NULL);
-	//MSG msg;
-	BOOL bRet;
-	while ( true )
-	{
-		bRet = GetMessage(&msg, NULL, 0, 0);
-		DebugOutput("msg.message value: " << msg.message << " — bRet: " << bRet);
-		switch (bRet)
-		{
-		case -1:
-			::MessageBox(NULL, _T("Error: function GetMessage returned -1"), _T("Error"), MB_ICONERROR);
-			ReleaseDC(NULL, hdcScreen);
-			return dwWaitResult;
-			break;
-		case 0:
-			::MessageBox(NULL, _T("GetMessage returned 0: WM_QUIT"), _T("Error"), MB_ICONERROR);
-			ReleaseDC(NULL, hdcScreen);
-			return dwWaitResult;
-			break;
-		default:
-			if (msg.message == WM_TIMER) {
-				if (FadeWindowOut(hWnd, hdcScreen))
-				{ // finished
-					ReleaseDC(NULL, hdcScreen);
-					return dwWaitResult;
-				}
-			}
-		}
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
+	return dwWaitResult;
 }
 
 /*
@@ -434,7 +388,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 
 			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != FALSE)
 			{
-				DebugOutput("1 - dwWaitResult: " << dwWaitResult << " — msg.message value: " << msg.message);
+				//DebugOutput("1 - dwWaitResult: " << dwWaitResult << " — msg.message value: " << msg.message);
 				// check for WM_QUIT
 				if (msg.message == WM_QUIT)
 				{
@@ -464,7 +418,7 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 				BOOL bRet;
 				while ( (bRet = GetMessage(&msg, NULL, 0, 0)) !=0)
 				{
-					DebugOutput("msg.message value: " << msg.message << " — bRet: " << bRet);
+					//DebugOutput("msg.message value: " << msg.message << " — bRet: " << bRet);
 					if (bRet == -1)
 					{
 						::MessageBox(NULL, _T("Error: function GetMessage returned -1"), _T("Error"), MB_ICONERROR);
@@ -496,6 +450,9 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 // https://stackoverflow.com/questions/51746505/why-cant-i-quit-the-mfc-program-when-i-used-msgwaitformultipleobjects
 // https://stackoverflow.com/questions/36651902/cant-remove-wm-timer-message
 
+/// <summary>
+/// 
+/// </summary>
 void CSplashScreen::Show() {
 	
 	// If the App file does not exist, then exit
@@ -521,40 +478,44 @@ void CSplashScreen::Show() {
 		ExitProcess(0);
 	}
 
-	// Create and display the splash window
-	HBITMAP hb = NULL;
-	HWND wnd = NULL;
-	hb = CreateBitmapImage();			//hb = m_pImgLoader->LoadSplashImage();
-
-	if (hb != NULL) {
+	// Display the splash window and launch the application
+	HBITMAP hb = CreateBitmapImage();		//hb = m_pImgLoader->LoadSplashImage();
+	if (hb != NULL)
+	{
+		// First show the splash screen
 		RegisterWindowClass();
-		wnd = CreateSplashWindow();
+		HWND wnd = CreateSplashWindow();
 		SetSplashImage(wnd, hb);
-	}
-
-	// Launch the application
-	HANDLE hProcess = LaunchApplication();
-	AllowSetForegroundWindow(GetProcessId(hProcess));
+	
+		// Then launch the application
+		HANDLE hProcess = LaunchApplication();
+		AllowSetForegroundWindow(GetProcessId(hProcess));
 		
-	// Display the splash screen for as long as it's needed
-	if (wnd != NULL) {
-		HANDLE aHandles[3] = { hProcess, hCloseSplashEvent, hCloseSplashWithoutFadeEvent };
-		PumpMsgWaitForMultipleObjects(wnd, 3, &aHandles[0], INFINITE);
+		// Finally, display the splash screen for as long as it's needed, and destroy it afterwards
+		if (wnd != NULL) {
+			HANDLE aHandles[3] = { hProcess, hCloseSplashEvent, hCloseSplashWithoutFadeEvent };
+			PumpMsgWaitForMultipleObjects(wnd, 3, &aHandles[0], INFINITE);
+
+			// Destroy the splash window
+			DestroyWindow(wnd);
+		}
+
+		// Clean up
+		UnregisterWindowClass();
+		CloseHandle(hProcess);
+		DeleteObject(hb);
 	}
-
-
-	// Deallocate the hbitmap
-	if (hb!= NULL) DeleteObject(hb);
-
-	CloseHandle(hProcess);
+	else
+	{
+		// Just launch the application
+		HANDLE hProcess = LaunchApplication();
+		AllowSetForegroundWindow(GetProcessId(hProcess));
+		CloseHandle(hProcess);
+	}
 
 	// Close the events
 	if (hCloseSplashEvent != NULL) CloseHandle(hCloseSplashEvent);
 	if (hCloseSplashWithoutFadeEvent != NULL) CloseHandle(hCloseSplashWithoutFadeEvent);
-	
-	// Destroy the window
-	if (wnd != NULL) DestroyWindow(wnd);
-	UnregisterWindowClass();
 
 	// Close the COM library
 	CoUninitialize();
