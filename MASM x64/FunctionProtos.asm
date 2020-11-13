@@ -59,8 +59,11 @@ externdef MonitorFromPoint:PROC
 externdef MoveWindow:PROC
 
 externdef MsgWaitForMultipleObjects:PROC
-
 externdef MsgWaitForMultipleObjectsEx:PROC
+externdef WaitForMultipleObjects:PROC
+externdef WaitForMultipleObjectsEx:PROC
+externdef WaitForSingleObject:PROC
+externdef WaitForSingleObjectEx:PROC
 
 externdef PeekMessageA:PROC
 externdef PeekMessageW:PROC
@@ -209,6 +212,8 @@ externdef GetModuleFileNameW:PROC
   ENDIF
 
 externdef GetTickCount:PROC
+
+externdef GetTickCount64:PROC
 
 externdef ExitProcess:PROC
 

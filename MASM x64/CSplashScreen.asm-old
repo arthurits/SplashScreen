@@ -648,94 +648,170 @@ CSplashScreen_LaunchApplication PROC uses rbx rdi r15 lpTHIS:QWORD
 	ret
 CSplashScreen_LaunchApplication ENDP
 
-CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r13 r14 r15 lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
-
-	LOCAL msg		:MSG
+CSplashScreen_PumpMsgWaitForMultipleObjects PROC uses rbx rdi r15 lpTHIS:QWORD, hwndSplash:HWND, nCount:DWORD, pHandles:LPHANDLE, dwMilliseconds:DWORD, hdcScreen:HDC
+	LOCAL dwStartTickCount	:DWORD
+	LOCAL dwElapsed			:DWORD
+	LOCAL dwTimeOut			:DWORD
+	LOCAL dwWaitResult		:DWORD
+	;LOCAL hdcScreen			:HDC
+	LOCAL msg				:MSG
 
 	mov r15, rsp
-	sub rsp, 8 * 4	; Shallow space for Win32 API x64-calls
+	sub rsp, 8 * 5	; Shallow space for Win32 API x64-calls
 	and rsp, -10h	; Add 8 bits if needed to align to 16 bits boundary
 	sub r15, rsp	; r15 stores the shallow space needed for Win32 API x64 calls
 	mov rdi, lpTHIS	; Get this pointer
 
-	; Wait for a handle to be signaled
-	mov r9d, dwMilliseconds
-	mov r8, FALSE
-	mov rdx, pHandles
-	mov ecx, nCount
-	call WaitForMultipleObjects
-	mov r14d, eax
+	call GetTickCount		; invoke GetTickCount
+	mov dwStartTickCount, eax
 
-	cmp r14d, 1
-	jne CSplashScreen_End_If_01
-		; Timeout on actual wait or any other object
-		mov r9, NULL
-		mov r8, 30
-		mov rdx, 1
-		mov rcx, hwndSplash
-		call SetTimer		; invoke SetTimer, hwndSplash, 1, 30, NULL
+	Wait_Loop:
+		; Calculate timeout
 		call GetTickCount	; invoke GetTickCount
-		add eax, (CSplashScreen PTR [rdi]).intFadeOutTime
-		mov (CSplashScreen PTR [rdi]).intFadeOutEnd, eax
-		
-		; Loop through the messages
-		mov r13, 1			; bGetMsg = TRUE
-		While_GetMsg_Start:	; loop while r13 != FALSE
-			cmp r13, FALSE
-			je While_GetMsg_End
+		sub eax, dwStartTickCount
+		mov dwElapsed, eax
 
+		; .IF (dwMilliseconds == INFINITE)
+		; const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE :dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0
+		cmp dwMilliseconds, INFINITE				; .IF
+		jne CSplashScreen_Pump_False_01
+			mov dwTimeOut, INFINITE
+			jmp CSplashScreen_Pump_EndIf_01
+		CSplashScreen_Pump_False_01:				; .ELSE
+			cmp eax, dwMilliseconds						; .IF (eax < dwMilliseconds)		; dwElapsed < dwMilliseconds
+			jae CSplashScreen_Pump_False_02
+				mov eax, dwMilliseconds
+				sub eax, dwElapsed
+				mov dwTimeOut, eax
+				jmp CSplashScreen_Pump_EndIf_02
+			CSplashScreen_Pump_False_02:				;.ELSE
+				mov dwTimeOut, 0
+			CSplashScreen_Pump_EndIf_02:				; EndIf
+		CSplashScreen_Pump_EndIf_01:				; EndIf
+
+		; Wait for a handle to be signaled or a message
+		mov QWORD PTR [rsp+32], QS_ALLINPUT	; 0FFh
+		mov r9d, dwTimeOut
+		mov r8, FALSE
+		mov rdx, pHandles
+		mov ecx, nCount
+		call MsgWaitForMultipleObjects		; invoke MsgWaitForMultipleObjects, nCount, pHandles, FALSE, dwTimeOut, QS_ALLINPUT
+		mov dwWaitResult, eax
+		mov eax, WAIT_OBJECT_0
+		add eax, nCount
+
+		; If 03
+		cmp dwWaitResult, eax				; .IF ( dwWaitResult == eax )		; dwWaitResult == WAIT_OBJECT_0 + nCount
+		jne CSplashScreen_Pump_False_03
+
+			jmp While_Peek_Condition	; While PeekMessage != FALSE
+
+			While_Peek_Start:
+				; If 04
+				cmp msg.message, WM_QUIT	; .IF (msg.message == WM_QUIT)
+				jne CSplashScreen_Pump_EndIf_04
+					; Repost quit message and return
+					mov rcx, msg.wParam
+					call PostQuitMessage	; invoke PostQuitMessage, msg.wParam
+					;return WAIT_OBJECT_0 + nCount;
+					jmp exit_PumpMsgWaitForMultipleObjects
+				CSplashScreen_Pump_EndIf_04:	; EndIf 04
+				; Dispatch thread message
+				lea rcx, msg
+				call TranslateMessage	; invoke TranslateMessage, ADDR msg
+				lea rcx, msg
+				call DispatchMessage	; invoke DispatchMessage, ADDR msg
+
+			While_Peek_Condition:
+				mov QWORD PTR [rsp+32], PM_REMOVE
+				mov r9, 0
+				mov r8, 0
+				mov rdx, NULL
+				lea rcx, msg
+				call PeekMessage	; invoke PeekMessage, ADDR msg, NULL, 0, 0, PM_REMOVE
+				cmp rax, FALSE
+				jne While_Peek_Start	; execute while rax != FALSE
+				jmp CSplashScreen_Pump_EndIf_03	; End IF
+
+		CSplashScreen_Pump_False_03:		; .ELSE
+			; Check fade event (pHandles[1]).  If the fade event is not set then we simply need to exit.  
+			; if the fade event is set then we need to fade out
+			mov QWORD PTR [rsp+32], QS_ALLINPUT
 			mov r9, 0
-			mov r8, 0
-			mov rdx, hwndSplash
-			lea rcx, msg
-			call GetMessage	; invoke GetMessage, ADDR msg, hwndSplash, 0, 0
-			mov rbx, rax	; this can be equal to -1 (error), 0 (WM_QUIT), or else (TRUE)
+			mov r8, FALSE
+			mov rdx, pHandles	; Pointer to the beginning of the array
+			add rdx, 8			; Point to the second element: pHandles[1]
+			mov rcx, 1			
+			call MsgWaitForMultipleObjects	; invoke MsgWaitForMultipleObjects, 1, &pHandles[1], FALSE, 0, QS_ALLINPUT
+			mov dwWaitResult, eax
 			
-			mov rdx, 0
-			mov rcx, pHandles
-			call WaitForSingleObject
-			cmp rax, WAIT_OBJECT_0
-			jne CSplashScreen_End_If_02
-				mov rbx, 0	; If the launched application is no longer running, assimilate it to a WM_QUIT
-			CSplashScreen_End_If_02:
+			; If 05
+			cmp rax, WAIT_OBJECT_0				; .IF (eax == WAIT_OBJECT_0)
+			jne CSplashScreen_Pump_EndIf_05
+				; Timeout on actual wait or any other object
+				mov r9, NULL
+				mov r8, 30
+				mov rdx, 1
+				mov rcx, hwndSplash
+				call SetTimer		; invoke SetTimer, hwndSplash, 1, 30, NULL
+				call GetTickCount	; invoke GetTickCount
+				add eax, (CSplashScreen PTR [rdi]).intFadeOutTime
+				mov (CSplashScreen PTR [rdi]).intFadeOutEnd, eax
 
-			; Switch case WaitForSingleObject: -1, 0 and else
-			cmp rbx, -1
-			jne CSplashScreen_Switch_Case_02
-				; Hanlde the error
-			CSplashScreen_Switch_Case_02:
-				cmp rbx, 0
-				jne CSplashScreen_Switch_Case_Def
-				mov r13, FALSE
-				jmp CSplashScreen_Switch_End_01
-			CSplashScreen_Switch_Case_Def:
-				cmp msg.message, WM_TIMER
-				jne CSplashScreen_End_If_03
-					mov rax, hdcScreen
-					mov QWORD PTR [rsp + 16], rax			; hdcScreen
-					mov rax, hwndSplash
-					mov QWORD PTR [rsp + 8], rax
-					mov QWORD PTR [rsp], rdi
-					call CSplashScreen_FadeWindowOut	; FadeWindowOut(hWnd, hdcScreen)
-					cmp rax, 1
-					jne CSplashScreen_Switch_End_01
-						mov r13, FALSE
-				CSplashScreen_End_If_03:
-			CSplashScreen_Switch_End_01:
+				jmp FadeWindow_Condition
 
-			; Dispatch thread message
-			lea rcx, msg
-			call TranslateMessage	; invoke TranslateMessage, ADDR msg
-			lea rcx, msg
-			call DispatchMessage	; invoke DispatchMessage, ADDR msg
+				FadeWindow_Start:
+					; If 06: .IF GetMessage( &msg, hWnd, 0, 0 )) == -1
+					cmp rax, -1
+					jne CSplashScreen_Pump_False_06
+						jmp CSplashScreen_Pump_EndIf_05	; Handle the error and possibly exit
+					CSplashScreen_Pump_False_06:		; .ELSE
+						; If 08: .IF (msg.message == WM_QUIT)
+						cmp msg.message, WM_CLOSE
+						jne CSplashScreen_Pump_EndIf_07
+							je CSplashScreen_Pump_EndIf_05	
+						CSplashScreen_Pump_EndIf_07:		; .ENDIF
 
-			jmp While_GetMsg_Start
+						; If 08: .IF (msg.message == WM_TIMER)
+						cmp msg.message, WM_TIMER			; 
+						jne CSplashScreen_Pump_EndIf_08
+							mov rax, hdcScreen
+							mov QWORD PTR [rsp + 16], rax			; hdcScreen
+							mov rax, hwndSplash
+							mov QWORD PTR [rsp + 8], rax
+							mov QWORD PTR [rsp], rdi
+							call CSplashScreen_FadeWindowOut	; FadeWindowOut(hWnd, hdcScreen)
+							cmp rax, 1
+							je CSplashScreen_Pump_EndIf_05
+						CSplashScreen_Pump_EndIf_08:		; .ENDIF
+						
+						; Dispatch thread message
+						lea rcx, msg
+						call TranslateMessage	; invoke TranslateMessage, ADDR msg
+						lea rcx, msg
+						call DispatchMessage	; invoke DispatchMessage, ADDR msg
+					CSplashScreen_Pump_EndIf_06:		; .ENDIF
+				
+				FadeWindow_Condition:
+					mov r9, 0
+					mov r8, 0
+					mov rdx, hwndSplash
+					lea rcx, msg
+					call GetMessage	; invoke GetMessage, ADDR msg, hwndSplash, 0, 0
+					cmp rax, FALSE
+					jne FadeWindow_Start	; execute loop while GetMessage( &msg, hWnd, 0, 0 )) != 0
+			CSplashScreen_Pump_EndIf_05:
 
-		While_GetMsg_End:
+			; We return the results from MsgWaitForMultipleObjects and exit the for(;;) lookp
+			mov eax, dwWaitResult	
+			jmp exit_PumpMsgWaitForMultipleObjects	
 
-	CSplashScreen_End_If_01:
-	
-	mov rax, r14	; Return WaitForMultipleObjects value
+		CSplashScreen_Pump_EndIf_03:
+
+	jmp Wait_Loop
+
+	exit_PumpMsgWaitForMultipleObjects:
+
 	add rsp, r15	; Restore the stack pointer to point below the shallow space
 	ret
 CSplashScreen_PumpMsgWaitForMultipleObjects ENDP

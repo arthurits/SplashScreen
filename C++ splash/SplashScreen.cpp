@@ -325,13 +325,8 @@ inline DWORD CSplashScreen::PumpMsgWaitForMultipleObjects(HWND hWnd, DWORD nCoun
 	HDC hdcScreen;
 	MSG msg;
 
-	// Calculate timeout
-	const ULONGLONG qwStartTickCount = ::GetTickCount64();
-	const DWORD dwElapsed = (DWORD)(GetTickCount64() - qwStartTickCount);
-	const DWORD dwTimeout = dwMilliseconds == INFINITE ? INFINITE : dwElapsed < dwMilliseconds ? dwMilliseconds - dwElapsed : 0;
-
 	// Wait for a handle to be signaled
-	const DWORD dwWaitResult = WaitForMultipleObjects(nCount, pHandles, FALSE, dwTimeout);
+	const DWORD dwWaitResult = WaitForMultipleObjects(nCount, pHandles, FALSE, dwMilliseconds);
 		//DebugOutput("dwWaitResult: " << dwWaitResult);
 	// If pHandles[1] is signaled, then fade out the splash window
 	if (dwWaitResult == 1)
