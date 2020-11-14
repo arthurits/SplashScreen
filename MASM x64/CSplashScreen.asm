@@ -11,7 +11,8 @@ _CSplashScreen_ equ 1
 ;include C:\masm32\include\comdlg32.inc
 
 ;WindowProc      proto CALLBACK
-
+; UOC: Intro to x64 ASM
+; http://cv.uoc.edu/annotation/8255a8c320f60c2bfd6c9f2ce11b2e7f/619469/PID_00218273/PID_00218273.html#w31aac15c17b7c15
 .data?
 ; --=====================================================================================--
 ; CLASS STRUCTURE

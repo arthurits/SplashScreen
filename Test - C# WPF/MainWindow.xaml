@@ -1,0 +1,23 @@
+﻿<Window x:Class="SplashScreenTester.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SplashScreenTester"
+        mc:Ignorable="d"
+        Title="Main window" Height="450" Width="800" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize">
+    <Grid>
+        <Label x:Name="label" Content="Splash screen tester" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="20" Margin="0,10,0,0"/>
+        <Label x:Name="label2" Content="Code in App.xaml.cs" HorizontalAlignment="Center" Height="27" Margin="0,45,0,0" VerticalAlignment="Top" Width="122"/>
+        <TextBox x:Name="textbox" Text="        protected override void OnStartup(StartupEventArgs e)&#xD;&#xA;        {&#xD;&#xA;            Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Loaded,&#xD;&#xA;                (DispatcherOperationCallback)delegate { CloseSplashScreen(); return null; },&#xD;&#xA;                this);&#xD;&#xA;            base.OnStartup(e);&#xD;&#xA;        }&#xD;&#xA;&#xD;&#xA;        private void CloseSplashScreen()&#xD;&#xA;        {&#xD;&#xA;            // signal the native process (that launched us) to close the splash screen&#xD;&#xA;            using (var closeSplashEvent = new EventWaitHandle(false,&#xD;&#xA;                EventResetMode.ManualReset,&#xD;&#xA;                &quot;CloseSplashScreenEventSplashScreenStarter&quot;))&#xD;&#xA;            {&#xD;&#xA;                closeSplashEvent.Set();&#xD;&#xA;            }&#xD;&#xA;        }" HorizontalAlignment="Center" Height="354" Margin="0,70,0,0" VerticalAlignment="Top" Width="566" FontSize="14">
+            <TextBox.Style>
+                <Style TargetType="TextBox">
+                    <Setter Property="IsReadOnly" Value="True" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="TextWrapping" Value="Wrap" />
+                </Style>
+            </TextBox.Style>
+        </TextBox>
+
+    </Grid>
+</Window>
