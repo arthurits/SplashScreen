@@ -1,44 +1,32 @@
 ifndef _CSplashScreen_
 _CSplashScreen_ equ 1
 
-;include C:\masm32\include\windows.inc
-;include C:\masm32\include\kernel32.inc
-;include C:\masm32\include\Ole32.inc
-;include C:\masm32\include\gdi32.inc
-;include C:\masm32\include\gdiplus.inc
-;include C:\masm32\include\user32.inc
-;include C:\masm32\include\shlwapi.inc	; For PathRemoveFileSpec and PathCombine
-;include C:\masm32\include\comdlg32.inc
-
 ;WindowProc      proto CALLBACK
 ; UOC: Intro to x64 ASM
 ; http://cv.uoc.edu/annotation/8255a8c320f60c2bfd6c9f2ce11b2e7f/619469/PID_00218273/PID_00218273.html#w31aac15c17b7c15
+
 .data?
-; --=====================================================================================--
-; CLASS STRUCTURE
-; --=====================================================================================--
+	;;;
+	;;; Class structure
+	;;;
 	CSplashScreen STRUCT
-		Destructor				QWORD	?
-		Show					QWORD	?
-		;RegisterWindowClass		QWORD	?
-		;UnregisterWindowClass	QWORD	?
-		;CreateBitmapImage		QWORD	?
+		Destructor				QWORD	?	; Public method
+		Show					QWORD	?	; Public method
 		hModuleHandle			HMODULE	?
 		lpszImagePath			QWORD	?
 		lpszAppPath				QWORD	?
 		intFadeOutTime			DWORD	?
 		intFadeOutEnd			DWORD	?
-		blend					BLENDFUNCTION	<>	; DWORD 4 bytes long
+		blend					BLENDFUNCTION	<>	; DWORD, 4 bytes long
 	CSplashScreen ENDS
 
 .data
-
+	;;;
+	;;; Class vTable
+	;;;
 	CSplashScreen_initdata LABEL BYTE
 		QWORD OFFSET CSplashScreen_Destructor
 		QWORD OFFSET CSplashScreen_Show
-		;QWORD OFFSET CSplashScreen_RegisterWindowClass
-		;QWORD OFFSET CSplashScreen_UnregisterWindowClass
-		;QWORD OFFSET CSplashScreen_CreateBitmapImage
 		QWORD	0, 0, 0
 		DWORD	0, 0, 0
 	CSplashScreen_initend equ $-CSplashScreen_initdata
@@ -50,9 +38,9 @@ _CSplashScreen_ equ 1
 	strEventName_1	WORD	"C", "l", "o", "s", "e", "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "E", "v", "e", "n", "t", 0
 	strEventName_2	WORD	"C", "l", "o", "s", "e", "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "W", "i", "t", "h", "o", "u", "t", "F", "a", "d", "e", "E", "v", "e", "n", "t", 0
 	strClassName	WORD	"S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "C", "l", "a", "s", "s", 0
-	;UCSTR strIm, "Dark night 02.jpg", 0
 
 .const 
+
 	MAX_PATH equ 260
 
 	m_nSplashWidth equ 800
@@ -62,9 +50,12 @@ _CSplashScreen_ equ 1
 
 .code
 
-; --=====================================================================================--
-; CLASS CONSTRUCTOR
-; --=====================================================================================--
+;;; Class constructor
+;;; <param name="lpTHIS"> Pointer to the CSPlashScreen instance </param>
+;;; <param name="hInstance"></param>
+;;; <param name="strImage"></param>
+;;; <param name="intFadeOutTime"></param>
+;;; <returns></returns>
 CSplashScreen_Init PROC uses rcx rsi rdi lpTHIS:QWORD, hInstance:QWORD, strImage:QWORD, strApp:QWORD, intFadeOutTime:DWORD
 	cld   
 	; Asign the class methods to pointer lpTHIS
