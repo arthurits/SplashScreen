@@ -38,6 +38,9 @@ FILE_ATTRIBUTE_ARCHIVE	equ	20h
 ; GlobalAlloc constants
 GMEM_MOVEABLE		equ 2h
 GMEM_ZEROINIT		equ 40h
+HEAP_NO_SERIALIZE   equ 1h
+HEAP_GENERATE_EXCEPTIONS    equ 4h
+HEAP_ZERO_MEMORY    equ 8h
 
 ; MultiByteToWideChar
 CP_UTF8				equ 65001	; UTF-8 translation
