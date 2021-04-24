@@ -16,7 +16,7 @@ This project continues Bradley's and Stefan's efforts incorporating some minor t
    * Path (either absolute or relative) of the application to be launched. The resulting absolute path should be less than 260 characters long.
    * Time in miliseconds for the fading out of the splash screen (typically 500 or less).
 3. Use this code in the form's shown event to signal the fading out of the splash screen:
-```
+```csharp
 private void Form1_Shown(Object sender, EventArgs e)
 {
     // signal the native process (that launched us) to close the splash screen
