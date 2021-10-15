@@ -22,11 +22,9 @@ This project continues Bradley's and Stefan's efforts incorporating some minor t
 ```csharp
 private void Form1_Shown(Object sender, EventArgs e)
 {
-    // signal the native process (that launched us) to close the splash screen
-    using (var closeSplashEvent = new EventWaitHandle(false, EventResetMode.ManualReset, "CloseSplashScreenEvent"))
-    {
-        closeSplashEvent.Set();
-    }
+    // Signal the native process (that launched us) to close the splash screen
+    using var closeSplashEvent = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset, "CloseSplashScreenEvent");
+    closeSplashEvent.Set();
 }
 ```
 
