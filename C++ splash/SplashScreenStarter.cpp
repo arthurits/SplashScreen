@@ -1,6 +1,6 @@
 // SplashScreenStarter.cpp : Defines the entry point for the application.
 // http://www.catch22.net/tuts/win32/reducing-executable-size#
-//
+// https://stackoverflow.com/questions/37398/how-do-i-make-a-fully-statically-linked-exe-with-visual-studio-express-2005
 
 #include "stdafx.h"
 #include "SplashScreenStarter.h"
@@ -26,8 +26,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstanc
 	std::basic_string <TCHAR> strExecutable = _T("");
 	std::basic_string <TCHAR> strFadeoutTime = _T("0");
 	std::basic_string <TCHAR> strSuffix = _T("");
-	//std::basic_ifstream <TCHAR> fin(_T("settings.txt"));	// https://stackoverflow.com/questions/19697296/what-is-stdwifstreamgetline-doing-to-my-wchar-t-array-its-treated-like-a-b
-	std::basic_ifstream <TCHAR> fin(_T("C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt"));
+	std::basic_ifstream <TCHAR> fin(_T("settings.txt"));	// https://stackoverflow.com/questions/19697296/what-is-stdwifstreamgetline-doing-to-my-wchar-t-array-its-treated-like-a-b
+	//std::basic_ifstream <TCHAR> fin(_T("C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt"));
 	//std::wifstream fin(L"C:\\Users\\Arthurit\\Documents\\Visual Studio 2017\\Projects\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt");
 	//std::basic_ifstream <TCHAR> fin(_T("C:\\Users\\alfredoa\\source\\repos\\SplashScreen\\C++ splash\\x64\\Debug\\settings.txt"));
 	ULONGLONG nFadeoutTime = 0;
