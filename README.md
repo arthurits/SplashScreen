@@ -1,6 +1,9 @@
 # Splash screen
 A stand-alone splash screen used to launch other exe applications under Windows OS.
 
+Copyright © 2021 by Arthurits Ltd. No commercial nor profit use allowed. This software is provided only for personal and not-for-profit use.
+Download latest release: ![GitHub release (latest by date)](https://img.shields.io/github/v/release/arthurits/SplashScreen)
+
 The main idea is totally  based on [Bradley Grainger's blog entry](https://faithlife.codes/blog/2008/09/displaying_a_splash_screen_with_c_introduction/ "Bradley's blog entry") posted back on September 22, 2008.
 Shortly after, Stefan Olson built Bradley’s code (incorporating a few improvements) into a new Visual C++ application and shared it in a blog post on November 27. Unfortunately, his post is no longer available, although it can be retrieved using WayBackMachine [here](https://web.archive.org/web/20081212164733/http://olsonsoft.com/blogs/stefanolson/post/A-better-WPF-splash-screen.aspx "Archived Stefan's blog entry").
 
@@ -10,13 +13,13 @@ This project continues Bradley's and Stefan's efforts incorporating some minor t
 * The C++ version is ported to assembly (for the smallest and fastest possible executable) and some basic OOP is implemented.
 
 ## Instructions
-1. Set the splash screen application icon in the corresponding resources.rc file and then compile any of the 3 versions.
+1. Set the splash screen application icon in the corresponding *resources.rc* file and then compile any of the 3 versions.
 2. Create a text file named *settings.txt* and place it in the same folder as the splash screen application. Write three text lines:
    * Path (either absolute or relative) of the splash image. The resulting absolute path should be less than 260 characters long.
    * Path (either absolute or relative) of the application to be launched. The resulting absolute path should be less than 260 characters long.
    * Time in miliseconds for the fading out of the splash screen (typically 500 or less).
 3. Use this code in the form's shown event to signal the fading out of the splash screen:
-```
+```csharp
 private void Form1_Shown(Object sender, EventArgs e)
 {
     // signal the native process (that launched us) to close the splash screen
