@@ -79,8 +79,7 @@ _CFile_ equ 1
 	  
    CFile_initend equ $-CFile_initdata
 
-;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba.txt",0
-;UCSTR fileName2, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba2.txt",0
+;UCSTR fileName2, "C:\Users\...\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba.txt",0
 fileSize2 LARGE_INTEGER <>
 
 .const 

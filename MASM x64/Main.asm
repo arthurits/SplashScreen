@@ -25,12 +25,6 @@ include CSplashScreen.asm
 	;		WORD "P", "r", "o", "j", "e", "c", "t", "s", "\"
 	;		WORD "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "\"
 	;		WORD "M", "A", "S", "M", " ", "x", "6", "4", "\", "x", "6", "4", "\", "D", "e", "b", "u", "g", "\", "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
-	;fileName	WORD "C", ":", "\", "U", "s", "e", "r", "s", "\"
-	;		WORD "a", "l", "f", "r", "e", "d", "o", "a", "\"
-	;		WORD "s", "o", "u", "r", "c", "e", "\"
-	;		WORD "r", "e", "p", "o", "s", "\"
-	;		WORD "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "\"
-	;		WORD "A", "S", "M", "x", "6", "4", "\", "x", "6", "4", "\", "D", "e", "b", "u", "g", "\", "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
 
 	;UCSTR fileName, "settings.txt", 0
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0

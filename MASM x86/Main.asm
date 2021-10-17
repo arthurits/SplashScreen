@@ -56,34 +56,14 @@ include CSplashScreen.asm
 ; https://stackoverflow.com/questions/22677608/including-files-in-assembly-80x86
 ; https://stackoverflow.com/questions/56506869/how-to-initialize-a-local-struct-in-masm-assembly
 ; http://www.asmcommunity.net/forums/topic/?id=4739
-;CFile STRUCT
-;  Name WORD L"Z:\Visual Studio 2015\Projects\SplashScreen\ASM x86\Debug\settings.txt",0
-;  EndOfFile WORD 0
-;  handle DWORD 0
-;  ptrHeapText POINTER 0
-;  bytes DWORD 0
-;  CloseFile DWORD ?
-;  OpenFile DWORD ?
-;  Dispose DWORD ?
-;CFile ENDS
-
-;Splash STRUCT
-;	handle DWORD ?
-;	AppPath DWORD ?
-;	ImagePath DWORD ?
-;	TimeFadeOut DWORD ?
-;Splash ENDS
 
 .const
 MAXSIZE equ 260
 MEMSIZE equ 65535
 
 .data 
-;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\prueba.txt",0
-;UCSTR fileName, "C:\Users\AlfredoA\Documents\Visual Studio 2015\Projects\SplashScreen\MASM x86\Debug\prueba2.txt",0
-;UCSTR fileName, "C:\Users\alfredoa\source\repos\SplashScreen\MASM x86\Debug\settings.txt",0
-UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
-	;UCSTR fileName, "settings.txt",0
+	;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
+	UCSTR fileName, "settings.txt",0
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
 	ErrorApp BYTE "Could not find the file in the following path:", 13, 10, 0
 
@@ -98,15 +78,9 @@ UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashS
 .data? 
 
 
-
-
 .code
-main proc
 
-	;LOCAL file:CFile
-	;mov file.Dispose, OFFSET CFile_Dispose
-	;mov file.CloseFile, OFFSET CFile_CloseFile
-	;mov file.OpenFile, OFFSET CFile_OpenFile
+main proc
 
 	; Get the current handle
 	invoke GetModuleHandle,NULL 
