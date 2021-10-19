@@ -58,16 +58,15 @@ namespace SplashScreenTest
             this.textBox1.BackColor = System.Drawing.SystemColors.Control;
             this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.textBox1.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.textBox1.Location = new System.Drawing.Point(141, 170);
+            this.textBox1.Location = new System.Drawing.Point(114, 170);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
             this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(503, 156);
+            this.textBox1.Size = new System.Drawing.Size(542, 156);
             this.textBox1.TabIndex = 3;
             this.textBox1.TabStop = false;
-            this.textBox1.Text = "using (var closeSplashEvent = new EventWaitHandle(false,\r\n        EventResetMode." +
-    "ManualReset,\r\n        \"CloseSplashScreenEvent\"))\r\n{\r\n        closeSplashEvent.Se" +
-    "t()\r\n}";
+            this.textBox1.Text = "using var closeSplashEvent = new EventWaitHandle(false,\r\n        EventResetMode.M" +
+    "anualReset,\r\n        \"CloseSplashScreenEvent\")\r\ncloseSplashEvent.Set();";
             // 
             // MainWindow
             // 
