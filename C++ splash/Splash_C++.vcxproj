@@ -198,6 +198,11 @@
   <ItemGroup>
     <ResourceCompile Include="SplashScreenStarter.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="settings.txt">
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatOutputAsContent>
+    </CopyFileToFolders>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -45,6 +45,11 @@
   <ItemGroup>
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="settings.txt">
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatOutputAsContent>
+    </CopyFileToFolders>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{08470669-26BF-400B-B1CF-50B7DFAC5697}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

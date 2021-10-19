@@ -14,4 +14,7 @@
   <ItemGroup>
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="settings.txt" />
+  </ItemGroup>
 </Project>
