@@ -78,5 +78,8 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="settings.txt" />
+    <CopyFileToFolders Include="Splash_image.png">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>
