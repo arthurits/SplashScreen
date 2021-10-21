@@ -18,11 +18,26 @@ This project continues Bradley's and Stefan's efforts incorporating some minor t
    * Path (either absolute or relative) of the splash image. The resulting absolute path should be less than 260 characters long.
    * Path (either absolute or relative) of the application to be launched. The resulting absolute path should be less than 260 characters long.
    * Time in miliseconds for the fading out of the splash screen (typically 500 or less).
-3. Use this code in the form's shown event to signal the fading out of the splash screen:
+3. If launching a WinForms app, use this code in the form's shown event to signal the fading out of the splash screen:
 ```csharp
 private void Form1_Shown(Object sender, EventArgs e)
 {
-    // Signal the native process (that launched us) to close the splash screen
+    using var closeSplashEvent = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset, "CloseSplashScreenEvent");
+    closeSplashEvent.Set();
+}
+```
+4. If launching a WPF app, use this code in `App.xaml.cs` to signal the fading out of the splash screen:
+```csharp
+protected override void OnStartup(StartupEventArgs e)
+{
+    Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Loaded,
+                (DispatcherOperationCallback)delegate { CloseSplashScreen(); return null; },
+                this);
+    base.OnStartup(e);
+}
+
+private void CloseSplashScreen()
+{
     using var closeSplashEvent = new System.Threading.EventWaitHandle(false, System.Threading.EventResetMode.ManualReset, "CloseSplashScreenEvent");
     closeSplashEvent.Set();
 }
@@ -33,14 +48,14 @@ Compiling requirements: masm32 SDK.
 
 Execution requirements: Windows 2000 and above.
 
-Developement status: currently functional, minor adjustments needed.
+Developement status: currently functional.
 
 ## MASM x64 version
 Compiling requirements: Windows SDK.
 
 Execution requirements: Windows 2000 and above.
 
-Developement status: currently functional, minor adjustments needed.
+Developement status: currently functional.
 
 ## C++ version
 Minor tweaks to Bradley's and Stefan's original.
@@ -49,7 +64,7 @@ Compiling requirements: C++ and Windows SDK.
 
 Execution requirements: Visual C++ redistributable under Windows 2000 and above.
 
-Developement status: currently functional. Minor adjustments needed.
+Developement status: currently functional.
 
 
 ## License
