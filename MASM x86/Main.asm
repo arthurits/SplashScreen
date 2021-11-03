@@ -62,7 +62,7 @@ MAXSIZE equ 260
 MEMSIZE equ 65535
 
 .data 
-	;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
+	;UCSTR fileName, "C:\Users\...\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
 	UCSTR fileName, "settings.txt",0
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
 	ErrorApp BYTE "Could not find the file in the following path:", 13, 10, 0
@@ -93,7 +93,7 @@ main proc
 	invoke GetFileAttributes, OFFSET fileName
 	.IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 		invoke MessageBoxA, NULL, OFFSET ErrorSettings, NULL, MB_ICONERROR	; https://stackoverflow.com/questions/46439802/multiple-lines-of-output-in-a-message-box-assembly-language
-		je exit_main
+		jmp exit_main
 	.ENDIF
 
 	; Create CFile instance
@@ -160,7 +160,7 @@ main proc
 	invoke GetFileAttributes, lpszAppFileName
 	.IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 		invoke MessageBoxA, NULL, OFFSET ErrorApp, NULL, MB_ICONERROR
-		je exit_main_deallocate
+		jmp exit_main_deallocate
 	.ENDIF
 	;invoke GetFileAttributes, lpszImagePath
 	;invoke GetFileAttributes, lpszAppFileName
@@ -205,7 +205,7 @@ main proc
 
 	exit_main:
 
-	invoke ExitProcess,0
+	invoke ExitProcess, 0
 	
 main endp
 

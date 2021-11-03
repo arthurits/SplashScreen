@@ -133,21 +133,13 @@ CFile_Destructor ENDP
 CFile_OpenFile proc uses eax ebx edi lpTHIS:DWORD, lpszFileName:DWORD
 ;
 ; Opens a file, creates a handle and creates a w_char pointer
-; Receives: EAX, EBX, ECX, the three integers. May be
-; signed or unsigned.
-; Returns: EAX = sum, and the status flags (Carry, ; Overflow, etc.) are changed.
+; Receives: 
+; Returns: 
 ; Requires: nothing
+; https://stackoverflow.com/questions/56506869/how-to-initialize-a-local-struct-in-masm-assembly
 ;---------------------------------------------------------
-	; https://stackoverflow.com/questions/56506869/how-to-initialize-a-local-struct-in-masm-assembly
-	;LOCAL fileSize: LARGE_INTEGER <>
-	;LOCAL hMemory: DWORD
-	;LOCAL pMemory: DWORD
 	LOCAL hHeap: DWORD
 	LOCAL lpMem: DWORD
-
-	;push ebp ; save base pointer
-	;mov ebp,esp ; base of stack frame
-	sub esp,8	; save space for 2 DWORD locals
 
 	mov edi, [ebp+8]	; get the parameter lpszFileName passed on the stack to the function
 	mov edi, lpTHIS		; get the parameter lpTHIS passed on the stack to the function
@@ -168,7 +160,7 @@ CFile_OpenFile proc uses eax ebx edi lpTHIS:DWORD, lpszFileName:DWORD
 	mov eax, fileSize2.LowPart
 	inc eax						; One bit for the NULL terminated
 	mov ebx,eax
-	mov [edi].bytesRead, ebx		; Save the size in the in-memory struct
+	mov [edi].bytesRead, ebx	; Save the size in the in-memory struct
 
 	; Allocates memory space for the File
 	invoke HeapAlloc, hHeap, HEAP_ZERO_MEMORY, ebx
