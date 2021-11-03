@@ -142,15 +142,19 @@ CFile_OpenFile proc uses eax ebx edi lpTHIS:DWORD, lpszFileName:DWORD
 	;LOCAL fileSize: LARGE_INTEGER <>
 	;LOCAL hMemory: DWORD
 	;LOCAL pMemory: DWORD
-	;LOCAL pMemoryW: DWORD
+	LOCAL hHeap: DWORD
+	LOCAL lpMem: DWORD
 
 	;push ebp ; save base pointer
 	;mov ebp,esp ; base of stack frame
 	sub esp,8	; save space for 2 DWORD locals
 
-	mov edi, [ebp+8]	; get the parameter passed on the stack to the function
-	mov edi, lpTHIS		; get the parameter passed on the stack to the function
+	mov edi, [ebp+8]	; get the parameter lpszFileName passed on the stack to the function
+	mov edi, lpTHIS		; get the parameter lpTHIS passed on the stack to the function
 	ASSUME edi:PTR CFile
+
+	invoke GetProcessHeap
+	mov hHeap, eax
 
 	invoke CreateFile, lpszFileName,\ 
 		GENERIC_READ or GENERIC_WRITE ,\ 
@@ -166,21 +170,21 @@ CFile_OpenFile proc uses eax ebx edi lpTHIS:DWORD, lpszFileName:DWORD
 	mov ebx,eax
 	mov [edi].bytesRead, ebx		; Save the size in the in-memory struct
 
-	invoke GlobalAlloc, GMEM_MOVEABLE or GMEM_ZEROINIT, eax
-	mov DWORD PTR [ebp-4], eax
-	invoke GlobalLock, eax 
-	mov DWORD PTR [ebp-8], eax
-	invoke ReadFile, [edi].handle, DWORD PTR [ebp-8], fileSize2.LowPart, ADDR SizeReadWrite2, NULL
+	; Allocates memory space for the File
+	invoke HeapAlloc, hHeap, HEAP_ZERO_MEMORY, ebx
+	mov lpMem, eax
+
+	invoke ReadFile, [edi].handle, eax, fileSize2.LowPart, ADDR SizeReadWrite2, NULL
 	;mov DWORD PTR [ebp-8], eax
 	invoke CloseHandle, [edi].handle
 	.IF eax
 		mov [edi].handle, 0
 	.ENDIF
 
+	; Allocates memory space for the converstion to Unicode
 	mov eax, ebx
 	shl eax, 1		;Multiply by 2 in order to convert from char to wchar
-	invoke GlobalAlloc, GMEM_ZEROINIT, eax
-	;mov pMemoryW,eax
+	invoke HeapAlloc, hHeap, HEAP_ZERO_MEMORY , eax
 	mov [edi].ptrHeapText, eax
 	mov [edi].ptrLine, eax
 
@@ -192,8 +196,7 @@ CFile_OpenFile proc uses eax ebx edi lpTHIS:DWORD, lpszFileName:DWORD
 	;print [edi].ptrHeapText
 	;invoke	MessageBox, NULL, [edi].ptrHeapText, NULL, MB_OK
 
-	invoke GlobalUnlock,DWORD PTR [ebp-8] 
-	invoke GlobalFree,DWORD PTR [ebp-4]
+	invoke HeapFree, hHeap, NULL, lpMem
 	
 	assume edi:nothing
 
@@ -217,7 +220,9 @@ CFile_Dispose proc uses edi lpTHIS:DWORD
 	mov edi, lpTHIS
 	ASSUME edi: PTR CFile
 	.IF ( [edi].ptrHeapText != 0)
-		invoke GlobalFree, [edi].ptrHeapText
+		invoke GetProcessHeap
+		invoke HeapFree, eax, NULL, [edi].ptrHeapText
+		;invoke GlobalFree, [edi].ptrHeapText
 		mov [edi].ptrHeapText, 0
 	.ENDIF
 	ASSUME edi: nothing

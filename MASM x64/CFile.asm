@@ -135,10 +135,19 @@ CFile_Destructor PROC uses rdi r15 lpTHIS:QWORD
 	call CloseHandle
 	
 	next01:
-	mov rcx, (CFile PTR[rdi]).ptrHeapText
+	;mov rcx, (CFile PTR[rdi]).ptrHeapText
+	;cmp rcx, NULL
+	;je next02
+	;call GlobalFree
+	
+	call GetProcessHeap
+	mov r8, (CFile PTR[rdi]).ptrHeapText	; file
 	cmp rcx, NULL
 	je next02
-	call GlobalFree
+	mov rdx, NULL
+	mov rcx, rax	; ProcessHeap
+	call HeapFree
+
 	next02:   
 	
 	add rsp, r15	; Restore the stack pointer to point to the return address
@@ -154,6 +163,7 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 ; Returns: EAX = sum, and the status flags (Carry, ; Overflow, etc.) are changed.
 ; Requires: nothing
 ;---------------------------------------------------------
+	LOCAL hHeap: QWORD
 	LOCAL hGLOBAL: QWORD
 	LOCAL lpGLOBAL: QWORD
 	
@@ -170,6 +180,10 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	;sub rsp, r10
 
 	mov rdi, lpTHIS
+
+	; Gets the handle to the default heap of the calling process. This handle can then be used in subsequent calls to the heap functions.
+	call GetProcessHeap
+	mov hHeap, rax
 
 	mov	DWORD PTR [rsp+48], NULL
 	mov	DWORD PTR [rsp+40], FILE_ATTRIBUTE_ARCHIVE
@@ -191,13 +205,20 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	;mov r10, rax
 	mov (CFile PTR[rdi]).bytesRead, rax		; Save the size in the in-memory struct
 
-	mov rdx, rax
-	mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT	; we set all bytes to 0
-	call GlobalAlloc						; invoke GlobalAlloc, GMEM_MOVEABLE or GMEM_ZEROINIT, eax
-	mov hGLOBAL, rax
-	mov rcx, rax
-	call GlobalLock
-	mov lpGLOBAL, rax						; lpGlobal is now null-terminated
+	;mov rdx, rax
+	;mov rcx, GMEM_MOVEABLE or GMEM_ZEROINIT	; we set all bytes to 0
+	;call GlobalAlloc						; invoke GlobalAlloc, GMEM_MOVEABLE or GMEM_ZEROINIT, eax
+	;mov hGLOBAL, rax
+	;mov rcx, rax
+	;call GlobalLock
+	;mov lpGLOBAL, rax						; lpGlobal is now null-terminated
+
+	; Allocates memory space for the File
+	mov r8, (CFile PTR[rdi]).bytesRead
+	mov rdx, 8								; we set all bytes to 0
+	mov rcx, hHeap
+	call HeapAlloc
+	mov lpGLOBAL, rax
 
 	mov DWORD PTR [rsp+32], NULL
 	lea r9, SizeReadWrite2
@@ -213,14 +234,12 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 		mov (CFile PTR[rdi]).hFile, 0
 	end_if:
 
-
-	; Convert text from byte to word (Unicode)
-	mov rdx, (CFile PTR[rdi]).bytesRead
-	shl rdx, 1		;Multiply by 2 in order to convert from char to wchar
-	mov rcx, GMEM_ZEROINIT
-	call GlobalAlloc
-	;invoke GlobalAlloc, GMEM_ZEROINIT, eax
-	;mov pMemoryW,eax
+	; Allocates memory space for the converstion to Unicode
+	mov r8, (CFile PTR[rdi]).bytesRead
+	shl r8, 1								; Multiply by 2 in order to convert from char to wchar
+	mov rdx, 8								; we set all bytes to 0
+	mov rcx, hHeap
+	call HeapAlloc
 	mov (CFile PTR[rdi]).ptrHeapText, rax
 	mov (CFile PTR[rdi]).ptrLine, rax
 
@@ -253,10 +272,10 @@ CFile_OpenFile PROC uses rdi r15 lpTHIS:QWORD, lpszFileName:QWORD
 	;call	MessageBox
 
 	; Release heap memory
-	mov rcx, lpGLOBAL
-	call GlobalUnlock
-	mov rcx, hGLOBAL
-	call GlobalFree
+	mov r8, lpGLOBAL	; file
+	mov rdx, NULL
+	mov rcx, hHeap	; ProcessHeap
+	call HeapFree
 
 	add rsp, r15	; Restore the stack pointer to point to the return address
 	ret
@@ -272,14 +291,16 @@ CFile_Dispose PROC uses rdi rbx lpTHIS:QWORD
 ; Requires: nothing
 ;---------------------------------------------------------
 	mov rdi, lpTHIS
-	;ASSUME edi: PTR CFile
+	
 	cmp (CFile ptr[rdi]).ptrHeapText, 0
 	je CFile_Dispose_next01
-		mov rcx, (CFile ptr[rdi]).ptrHeapText
-		call GlobalFree
+		call GetProcessHeap
+		mov r8, (CFile PTR[rdi]).ptrHeapText
+		mov rdx, NULL
+		mov rcx, rax
+		call HeapFree
 		mov (CFile ptr[rdi]).ptrHeapText, 0
-	CFile_Dispose_next01:
-	;ASSUME edi: nothing
+	CFile_Dispose_next01:	
 	ret
 CFile_Dispose ENDP
 
