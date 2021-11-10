@@ -18,40 +18,32 @@ include CSplashScreen.asm
 
 .data
 	fileName  WORD "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
-	;fileName	WORD "C", ":", "\", "U", "s", "e", "r", "s", "\"
-	;		WORD "A", "r", "t", "h", "u", "r", "i", "t", "\"
-	;		WORD "D", "o", "c", "u", "m", "e", "n", "t", "s", "\"
-	;		WORD "V", "i", "s", "u", "a", "l", " ", "S", "t", "u", "d", "i", "o", " ", "2", "0", "1", "7", "\"
-	;		WORD "P", "r", "o", "j", "e", "c", "t", "s", "\"
-	;		WORD "S", "p", "l", "a", "s", "h", "S", "c", "r", "e", "e", "n", "\"
-	;		WORD "M", "A", "S", "M", " ", "x", "6", "4", "\", "x", "6", "4", "\", "D", "e", "b", "u", "g", "\", "s", "e", "t", "t", "i", "n", "g", "s", ".", "t", "x", "t", 0
-
 	;UCSTR fileName, "settings.txt", 0
 	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
 	ErrorApp BYTE "Could not find the file in the following path:", 13, 10, 0
 
-	file			QWORD	NULL
-	splash			QWORD	NULL
+	file		QWORD	NULL
+	splash		QWORD	NULL
 	nFadeoutTime	QWORD	NULL
 	hModuleHandle	QWORD	NULL
 	lpszImagePath	LPCTSTR	NULL
-	lpszPrefix		LPCTSTR	NULL
+	lpszPrefix	LPCTSTR	NULL
 	lpszAppFileName	LPCTSTR	NULL
 
 .code
 main PROC
     ; Stack preliminaries
-    sub rsp, 8*4	; Shallow space for Win32 API x64 calls
-	and rsp, -10h	; If needed, subtract 8 bits to align the stack to a 16-bit boundary
+    	sub rsp, 8*4	; Shallow space for Win32 API x64 calls
+	and rsp, -10h	; Subtract the needed bits to align the stack to a 16-bit boundary
 
-	; Get the current handle
+    ; Get the current handle
 	mov rcx, NULL
 	call GetModuleHandle
 	mov hModuleHandle, rax
 	cmp rax, NULL
 	je exit_main
 
-	; If settings.txt doesn't exist, then exit the program
+    ; If settings.txt doesn't exist, then exit the program
 	mov rcx, OFFSET fileName
 	call GetFileAttributes
 	cmp eax, INVALID_FILE_ATTRIBUTES	;.IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
@@ -65,9 +57,9 @@ main PROC
 		mov rcx, NULL
 		call MessageBoxA	; https://stackoverflow.com/questions/46439802/multiple-lines-of-output-in-a-message-box-assembly-language
 		jmp exit_main
-	next02:		; .ENDIF
+	next02:					; .ENDIF
 
-	; Create CFile instance and call the constructor CFile_Init
+    ; Create CFile instance and call the constructor CFile_Init
 	call GetProcessHeap
 	mov rcx, rax
 	mov rdx, NULL
@@ -89,17 +81,17 @@ main PROC
 	call (CFile PTR [rbx]).ConvertToLine	;	invoke (CFile PTR [eax]).OpenFile, eax
 	;lea rsp, [rsp+8]	; add rsp, 8
 
-	; Read the first line: the image path
+    ; Read the first line: the image path
 	call (CFile PTR [rbx]).GetLine
 	cmp rax, 0
 	mov lpszImagePath, rax
 
-	; Read the second line: the application path
+    ; Read the second line: the application path
 	call (CFile PTR [rbx]).GetLine
 	cmp rax, 0	; .IF eax!=0
 	mov lpszAppFileName, rax
 	
-	; Read the third line: the fadeout milliseconds
+    ; Read the third line: the fadeout milliseconds
 	call (CFile PTR [rbx]).GetLine
 	cmp rax, 0	; .IF (eax != 0)
 		mov nFadeoutTime, rax
@@ -124,7 +116,7 @@ main PROC
 		jmp exit_main_dispose_CFile
 	next04:								; .ENDIF
 
-	; Create CSplashScreen instance
+    ; Create CSplashScreen instance
 	call GetProcessHeap
 	mov r8, SIZEOF CSplashScreen
 	mov rdx, NULL
@@ -178,10 +170,10 @@ main PROC
 		mov rcx, rax
 		call HeapFree	; invoke HeapFree, eax, NULL, splash
 
-	; Exit
-	exit_main:
-		mov   rcx, 0
-		call ExitProcess	; invoke ExitProcess, 0
+    ; Exit
+    exit_main:
+	mov   rcx, 0
+	call ExitProcess
 
 main ENDP
 
@@ -222,7 +214,7 @@ StringToInt PROC uses rbx rcx rsi lpString:QWORD
 		; If it's a digit, add to the total and go on with the loop
 		add     rax, rbx	; Add to total counter
 		add     rsi, 2d		; Point to next char (2 bytes per char)
-    jmp loopString
+	jmp loopString
 
 	jmp exit_StringToInt
 
