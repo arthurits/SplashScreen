@@ -66,7 +66,9 @@ Execution requirements: Visual C++ redistributable under Windows 2000 and above.
 
 Developement status: currently functional.
 
-
 ## License
 Free for personal use.
 No commercial use allowed.
+
+## Stats
+![Alt](https://repobeats.axiom.co/api/embed/eb4d4440a57b2129e1b0bf8b9bf3916c95af4336.svg "Repobeats analytics image")
