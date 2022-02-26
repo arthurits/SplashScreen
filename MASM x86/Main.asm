@@ -62,9 +62,8 @@ MAXSIZE equ 260
 MEMSIZE equ 65535
 
 .data 
-	;UCSTR fileName, "C:\Users\Arthurit\Documents\Visual Studio 2017\Projects\SplashScreen\MASM x86\Debug\settings.txt",0
-	UCSTR fileName, "settings.txt",0
-	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.txt'.", 13, 10, "Please make sure the file and format are correct.", 0
+	UCSTR fileName, "settings.splash",0
+	ErrorSettings BYTE "An unexpected error ocurred while reading 'settings.splash'.", 13, 10, "Please make sure the file and format are correct.", 0
 	ErrorApp BYTE "Could not find the file in the following path:", 13, 10, 0
 
 	file			DWORD	NULL
@@ -89,7 +88,7 @@ main proc
 		jmp exit_main
 	.ENDIF
 
-	; If settings.txt doesn't exist, then exit the program
+	; If settings.splash doesn't exist, then exit the program
 	invoke GetFileAttributes, OFFSET fileName
 	.IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 		invoke MessageBoxA, NULL, OFFSET ErrorSettings, NULL, MB_ICONERROR	; https://stackoverflow.com/questions/46439802/multiple-lines-of-output-in-a-message-box-assembly-language

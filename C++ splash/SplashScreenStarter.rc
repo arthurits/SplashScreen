@@ -47,7 +47,7 @@ BEGIN
 			VALUE "FileVersion", "1.0.0.0"
 			//VALUE "InternalName", "Universal splash screen starter"
 			//VALUE "LastChange", "27/03/2020"
-			VALUE "LegalCopyright", "Copyright 2021 Arthurits Ltd. All rights reserved. No commercial used allowed."
+			VALUE "LegalCopyright", "Copyright 2022 Arthurits Ltd. All rights reserved. No commercial used allowed."
 			VALUE "LegalTrademarks", "All rights reserved."
 			//VALUE "Official Build", "1"
 			VALUE "OriginalFilename", "SplashScreenStarter.exe"

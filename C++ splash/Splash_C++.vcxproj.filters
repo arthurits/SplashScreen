@@ -77,6 +77,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="settings.txt" />
+    <CopyFileToFolders Include="settings.splash" />
   </ItemGroup>
 </Project>
