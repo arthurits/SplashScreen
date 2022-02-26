@@ -26,9 +26,7 @@ namespace SplashScreenTester
         private void CloseSplashScreen()
         {
             // Signal the native process that launched us to close the splash screen
-            using var closeSplashEvent = new EventWaitHandle(false,
-                EventResetMode.ManualReset,
-                "CloseSplashScreenEventSplashScreenStarter")
+            using var closeSplashEvent = new EventWaitHandle(false, EventResetMode.ManualReset, "CloseSplashScreenEvent");
             closeSplashEvent.Set();
         }
     }

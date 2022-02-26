@@ -77,6 +77,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="settings.splash" />
+    <CopyFileToFolders Include="settings.txt" />
+    <CopyFileToFolders Include="Splash_image.png">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>

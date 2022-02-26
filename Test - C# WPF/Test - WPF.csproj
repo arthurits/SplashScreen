@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="App.xaml.cs" />
     <Compile Remove="Properties\AssemblyInfo.cs" />
     <Compile Remove="Window1.xaml.cs" />
   </ItemGroup>

@@ -233,7 +233,7 @@ externdef HeapFree:PROC
 
 externdef CloseHandle:PROC
 
-externdef GlobalFree:PROC
+;externdef GlobalFree:PROC
 
 externdef CreateFileA:PROC
 externdef CreateFileW:PROC
@@ -245,13 +245,13 @@ externdef CreateFileW:PROC
 
 externdef GetFileSizeEx:PROC
 
-externdef GlobalAlloc:PROC
+;externdef GlobalAlloc:PROC
 
-externdef GlobalLock:PROC
+;externdef GlobalLock:PROC
 
 externdef ReadFile:PROC
 
-externdef GlobalUnlock:PROC
+;externdef GlobalUnlock:PROC
 
 externdef MultiByteToWideChar:PROC
 

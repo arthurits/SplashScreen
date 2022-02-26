@@ -32,10 +32,11 @@ include CSplashScreen.asm
 
 .code
 main PROC
-	sub rsp, 8	; align stack to 16 bits boundary
-	sub rsp, 32	; save 32 bits for shallow space
+    ; Stack preliminaries
+    	sub rsp, 8*4	; Shallow space for Win32 API x64 calls
+	and rsp, -10h	; Subtract the needed bits to align the stack to a 16-bit boundary
 
-	; Get the current handle
+    ; Get the current handle
 	mov rcx, NULL
 	call GetModuleHandle
 	mov hModuleHandle, rax
@@ -45,9 +46,9 @@ main PROC
 	; If settings.splash doesn't exist, then exit the program
 	mov rcx, OFFSET fileName
 	call GetFileAttributes
-	cmp rax, INVALID_FILE_ATTRIBUTES	;.IF ( rax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
+	cmp eax, INVALID_FILE_ATTRIBUTES	;.IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 	je next01
-	cmp rax, FILE_ATTRIBUTE_DIRECTORY
+	cmp eax, FILE_ATTRIBUTE_DIRECTORY
 	jne next02
 	next01:
 		mov r9, MB_ICONERROR
@@ -56,9 +57,9 @@ main PROC
 		mov rcx, NULL
 		call MessageBoxA	; https://stackoverflow.com/questions/46439802/multiple-lines-of-output-in-a-message-box-assembly-language
 		jmp exit_main
-	next02:		; .ENDIF
+	next02:					; .ENDIF
 
-	; Create CFile instance and call the constructor CFile_Init
+    ; Create CFile instance and call the constructor CFile_Init
 	call GetProcessHeap
 	mov rcx, rax
 	mov rdx, NULL
@@ -80,17 +81,17 @@ main PROC
 	call (CFile PTR [rbx]).ConvertToLine	;	invoke (CFile PTR [eax]).OpenFile, eax
 	;lea rsp, [rsp+8]	; add rsp, 8
 
-	; Read the first line: the image path
+    ; Read the first line: the image path
 	call (CFile PTR [rbx]).GetLine
 	cmp rax, 0
 	mov lpszImagePath, rax
 
-	; Read the second line: the application path
+    ; Read the second line: the application path
 	call (CFile PTR [rbx]).GetLine
 	cmp rax, 0	; .IF eax!=0
 	mov lpszAppFileName, rax
 	
-	; Read the third line: the fadeout milliseconds
+    ; Read the third line: the fadeout milliseconds
 	call (CFile PTR [rbx]).GetLine
 	cmp rax, 0	; .IF (eax != 0)
 		mov nFadeoutTime, rax
@@ -99,11 +100,12 @@ main PROC
 		mov nFadeoutTime, rax
 
 	; If the application doesn't exist, then exit the program
+	mov ebx, INVALID_FILE_ATTRIBUTES
 	mov rcx, lpszAppFileName
 	call GetFileAttributes				; invoke GetFileAttributesW, lpszAppFileName
-	cmp rax, INVALID_FILE_ATTRIBUTES	; .IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
+	cmp eax, INVALID_FILE_ATTRIBUTES	; .IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 	je next03
-	cmp rax, FILE_ATTRIBUTE_DIRECTORY
+	cmp eax, FILE_ATTRIBUTE_DIRECTORY
 	jne next04
 	next03:
 		mov r9, MB_ICONERROR
@@ -111,10 +113,10 @@ main PROC
 		mov rdx, OFFSET ErrorApp
 		mov rcx, NULL
 		call MessageBoxA	; invoke MessageBoxA, NULL, OFFSET ErrorApp, NULL, MB_ICONERROR
-		je exit_main_dispose_CFile
+		jmp exit_main_dispose_CFile
 	next04:								; .ENDIF
 
-	; Create CSplashScreen instance
+    ; Create CSplashScreen instance
 	call GetProcessHeap
 	mov r8, SIZEOF CSplashScreen
 	mov rdx, NULL
@@ -168,10 +170,10 @@ main PROC
 		mov rcx, rax
 		call HeapFree	; invoke HeapFree, eax, NULL, splash
 
-	; Exit
-	exit_main:
-		mov   rcx, 0
-		call ExitProcess	; invoke ExitProcess, 0
+    ; Exit
+    exit_main:
+	mov   rcx, 0
+	call ExitProcess
 
 main ENDP
 
@@ -212,7 +214,7 @@ StringToInt PROC uses rbx rcx rsi lpString:QWORD
 		; If it's a digit, add to the total and go on with the loop
 		add     rax, rbx	; Add to total counter
 		add     rsi, 2d		; Point to next char (2 bytes per char)
-    jmp loopString
+	jmp loopString
 
 	jmp exit_StringToInt
 

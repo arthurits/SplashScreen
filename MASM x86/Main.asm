@@ -92,7 +92,7 @@ main proc
 	invoke GetFileAttributes, OFFSET fileName
 	.IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 		invoke MessageBoxA, NULL, OFFSET ErrorSettings, NULL, MB_ICONERROR	; https://stackoverflow.com/questions/46439802/multiple-lines-of-output-in-a-message-box-assembly-language
-		je exit_main
+		jmp exit_main
 	.ENDIF
 
 	; Create CFile instance
@@ -159,7 +159,7 @@ main proc
 	invoke GetFileAttributes, lpszAppFileName
 	.IF ( eax == INVALID_FILE_ATTRIBUTES or FILE_ATTRIBUTE_DIRECTORY )	; 0FFFFFFFF
 		invoke MessageBoxA, NULL, OFFSET ErrorApp, NULL, MB_ICONERROR
-		je exit_main_deallocate
+		jmp exit_main_deallocate
 	.ENDIF
 	;invoke GetFileAttributes, lpszImagePath
 	;invoke GetFileAttributes, lpszAppFileName
@@ -204,7 +204,7 @@ main proc
 
 	exit_main:
 
-	invoke ExitProcess,0
+	invoke ExitProcess, 0
 	
 main endp
 
