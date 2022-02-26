@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="settings.splash" />
+    <CopyFileToFolders Include="Splash_image.png" />
   </ItemGroup>
 </Project>
