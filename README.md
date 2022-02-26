@@ -62,7 +62,7 @@ Minor tweaks to Bradley's and Stefan's original.
 
 Compiling requirements: C++ and Windows SDK.
 
-Execution requirements: Visual C++ redistributable under Windows 2000 and above.
+Execution requirements: Visual C++ redistributable (MSVCR*versionnumber*.DLL) under Windows 2000 and above.
 
 Developement status: currently functional.
 
