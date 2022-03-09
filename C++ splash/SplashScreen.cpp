@@ -29,23 +29,6 @@ void DBO(const char* file, const int line, const TCHAR* s)
 	OutputDebugStringW(os_.str().c_str());			\
 }
 
-/*
-CSplashScreen::CSplashScreen(HINSTANCE hInstance, DWORD nFadeoutTime, CImageLoader *pImgLoader, LPCTSTR lpszImagePath, LPCTSTR lpszPrefix, LPCTSTR lpszAppFileName)
-{
-	m_strSplashClass =  _T("SplashWindow") ;
-	m_strSplashClass += lpszPrefix;
-	m_hInstance = hInstance;
-	m_nFadeoutTime = nFadeoutTime;
-	m_strImagePath = lpszImagePath;
-	m_strPrefix = lpszPrefix;
-	m_strAppFileName = lpszAppFileName;
-	m_pImgLoader = pImgLoader;
-
-	memset(&m_blend, 0, sizeof(m_blend));
-	m_nFadeoutEnd=0;
-}
-*/
-
 /// <summary>
 /// Class constructor
 /// </summary>
@@ -119,7 +102,7 @@ void CSplashScreen::SetSplashImage(HWND hwndSplash, HBITMAP hbmpSplash)
 
 	// center the splash screen in the middle of the primary work area
 	const RECT & rcWork = monitorinfo.rcWork;
-	POINT ptOrigin;
+	POINT ptOrigin{};
 
 	ptOrigin.x = rcWork.left + (rcWork.right - rcWork.left - sizeSplash.cx) / 2;
 	ptOrigin.y = rcWork.top + (rcWork.bottom - rcWork.top - sizeSplash.cy) / 2;
@@ -241,7 +224,8 @@ void CSplashScreen::RegisterWindowClass()
 /// <summary>
 /// Unregisters a window class for the splash and splash owner windows.
 /// </summary>
-void CSplashScreen::UnregisterWindowClass() {
+void CSplashScreen::UnregisterWindowClass()
+{
 	UnregisterClass(m_strSplashClass.c_str(), m_hInstance);
 }
 
